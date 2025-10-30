@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "812912548735",
+    "project_id": "partsmart-237c7",
+    "storage_bucket": "partsmart-237c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:812912548735:android:116481d4bfeb174609184a",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6iRe9h1DI-KEFfpDaVZgkGRxS62iOSCI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

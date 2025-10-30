@@ -1,5 +1,10 @@
+import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
+import '../services/auth_services.dart';
+import '../services/database_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -9,12 +14,45 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final AuthService _authService = AuthService();
+  final DatabaseService _dbService = DatabaseService();
+  final ImagePicker _imagePicker = ImagePicker();
+
   bool _obscurePassword = true;
   bool _agreeToTerms = false;
+  String _selectedCountryCode = '+1';
+  bool _isLoading = false;
+  File? _profileImage;
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _profileImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+    }
+  }
 
   bool _hasEightChars = false;
   bool _hasUppercase = false;
   bool _hasNumber = false;
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
 
   void _validatePassword(String password) {
     setState(() {
@@ -38,6 +76,8 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 32),
               _buildIcon(), // This is where the logo is
               const SizedBox(height: 16),
+              _buildProfilePicturePicker(),
+              const SizedBox(height: 24),
               const Text(
                 'Create Account',
                 textAlign: TextAlign.center,
@@ -121,6 +161,55 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
+  Widget _buildProfilePicturePicker() {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Center(
+        child: Stack(
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                shape: BoxShape.circle,
+                image: _profileImage != null
+                    ? DecorationImage(
+                        image: FileImage(_profileImage!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: _profileImage == null
+                  ? Icon(
+                      Icons.person_outline,
+                      size: 60,
+                      color: Colors.grey[400],
+                    )
+                  : null,
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF6D5FFD),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildLabeledTextField({
     required String label,
     required String hint,
@@ -135,6 +224,11 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         const SizedBox(height: 8),
         TextField(
+          controller: label == 'Full Name'
+              ? _fullNameController
+              : label == 'Email Address'
+                  ? _emailController
+                  : null,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -161,6 +255,7 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         const SizedBox(height: 8),
         TextField(
+          controller: _passwordController,
           obscureText: _obscurePassword,
           onChanged: _validatePassword,
           decoration: InputDecoration(
@@ -227,20 +322,41 @@ class _SignupScreenState extends State<SignupScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: DropdownButton<String>(
-                value: '+1',
+                value: _selectedCountryCode,
                 underline: const SizedBox(),
                 items: <String>['+1', '+63', '+44', '+91'].map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(value),
+                    child: Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   );
                 }).toList(),
-                onChanged: (_) {},
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      _selectedCountryCode = newValue;
+                    });
+                  }
+                },
+                icon: const Icon(Icons.arrow_drop_down),
+                iconSize: 24,
+                elevation: 2,
+                style: TextStyle(
+                  color: Colors.grey[800],
+                  fontSize: 16,
+                ),
+                dropdownColor: Colors.white,
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: TextField(
+                controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
                   hintText: 'Enter phone number',
@@ -298,14 +414,81 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Widget _buildCreateAccountButton() {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: _isLoading ? null : () async {
+        if (!_agreeToTerms) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please agree to the Terms of Service and Privacy Policy')),
+          );
+          return;
+        }
+
+        if (!_hasEightChars || !_hasUppercase || !_hasNumber) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please ensure your password meets all requirements')),
+          );
+          return;
+        }
+
+        setState(() {
+          _isLoading = true;
+        });
+
+        try {
+          final phoneNumber = '$_selectedCountryCode${_phoneController.text}';
+          final UserCredential? userCredential = await _authService.signUpWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            fullName: _fullNameController.text.trim(),
+            phoneNumber: phoneNumber,
+          );
+
+          // Upload profile picture if selected
+          if (userCredential?.user != null && _profileImage != null) {
+            final String? imageUrl = await _dbService.uploadProfilePicture(
+              _profileImage!,
+              userCredential!.user!.uid,
+            );
+
+            if (imageUrl != null) {
+              await _dbService.updateUserProfile(
+                userId: userCredential.user!.uid,
+                profilePicUrl: imageUrl,
+              );
+            }
+          }
+          
+          if (mounted) {
+            // Show success message and navigate to login
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Account created successfully! Please log in.')),
+            );
+            Navigator.pop(context); // Go back to login screen
+          }
+        } on FirebaseAuthException catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.message ?? 'An error occurred during signup')),
+          );
+        } finally {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        }
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF6D5FFD),
         foregroundColor: Colors.white,
         minimumSize: const Size(double.infinity, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      child: const Text('Create Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      child: _isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(color: Colors.white),
+            )
+          : const Text('Create Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
     );
   }
 

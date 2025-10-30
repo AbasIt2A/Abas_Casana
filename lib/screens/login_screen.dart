@@ -1,12 +1,32 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'signup_screen.dart';
+import '../services/auth_services.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _isLoading = false;
+  final AuthService authService = AuthService();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -18,9 +38,8 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Changed from Container with Icon to Image.asset for the logo
             Image.asset(
-              'assets/images/logo.png', // Your new logo
+              'assets/images/logo.png',
               height: 80,
             ),
             const SizedBox(height: 32),
@@ -67,16 +86,25 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            _buildTextField(hintText: 'Enter your password', obscureText: true, showEyeIcon: true),
+            _buildTextField(
+              hintText: 'Enter your password',
+              obscureText: _obscurePassword,
+              showEyeIcon: true,
+              onTogglePasswordVisibility: () {
+                setState(() {
+                  _obscurePassword = !_obscurePassword;
+                });
+              },
+            ),
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () {},
+                onPressed: () => _showForgotPasswordDialog(context),
                 child: const Text(
                   'Forgot password?',
                   style: TextStyle(
-                    color: Color(0xFF5B7FFF), // A bluish color
+                    color: Color(0xFF5B7FFF),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -95,10 +123,37 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  );
+                // This button would be for email/password sign-in (not implemented yet)
+                onPressed: _isLoading ? null : () async {
+                  if (_emailController.text.trim().isEmpty ||
+                      _passwordController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please fill in all fields')),
+                    );
+                    return;
+                  }
+
+                  setState(() {
+                    _isLoading = true;
+                  });
+
+                  try {
+                    await authService.signInWithEmailAndPassword(
+                      email: _emailController.text.trim(),
+                      password: _passwordController.text,
+                    );
+                    // The AuthWrapper will automatically handle navigation
+                  } on FirebaseAuthException catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(e.message ?? 'An error occurred during login')),
+                    );
+                  } finally {
+                    if (mounted) {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    }
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
@@ -133,11 +188,12 @@ class LoginScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 32),
+            // Updated Google Sign-In Button
             ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                );
+              onPressed: () async {
+                print("Google Sign In button pressed");
+                await authService.signInWithGoogle();
+                // AuthWrapper will automatically navigate if sign-in is successful
               },
               icon: Image.asset('assets/images/google.png', height: 24.0),
               label: const Text('Sign in with Google'),
@@ -185,11 +241,101 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _showForgotPasswordDialog(BuildContext context) async {
+    final TextEditingController resetEmailController = TextEditingController();
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Reset Password'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Enter your email address and we\'ll send you a link to reset your password.',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: resetEmailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      hintText: 'Enter your email',
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (resetEmailController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please enter your email')),
+                            );
+                            return;
+                          }
+                          setState(() => isLoading = true);
+                          try {
+                            await authService.sendPasswordResetEmail(
+                              resetEmailController.text.trim(),
+                            );
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Password reset email sent! Check your inbox.'),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
+                          } finally {
+                            setState(() => isLoading = false);
+                          }
+                        },
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Send Reset Link'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    resetEmailController.dispose();
+  }
+
   Widget _buildTextField({
     required String hintText,
     TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
     bool showEyeIcon = false,
+    VoidCallback? onTogglePasswordVisibility,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -198,8 +344,9 @@ class LoginScreen extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: TextField(
+        controller: hintText.contains('email') ? _emailController : _passwordController,
         keyboardType: keyboardType,
-        obscureText: obscureText,
+        obscureText: showEyeIcon ? _obscurePassword : obscureText,
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey[400]),
@@ -208,10 +355,10 @@ class LoginScreen extends StatelessWidget {
           suffixIcon: showEyeIcon
               ? IconButton(
                   icon: Icon(
-                    Icons.remove_red_eye_outlined,
+                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                     color: Colors.grey[500],
                   ),
-                  onPressed: () {},
+                  onPressed: onTogglePasswordVisibility,
                 )
               : null,
         ),

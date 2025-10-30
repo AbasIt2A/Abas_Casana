@@ -1,10 +1,11 @@
+// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'browse_screen.dart';
 import 'item_details_screen.dart';
-import 'login_screen.dart';
 import 'messages_screen.dart';
 import 'post_item_screen.dart';
 import 'profile_screen.dart';
+import '../services/auth_services.dart'; // Import AuthService
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,21 +19,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onItemTapped(int index) {
     if (index == 1) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const BrowseScreen()),
-      );
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BrowseScreen()));
     } else if (index == 2) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const PostItemScreen()),
-      );
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostItemScreen()));
     } else if (index == 3) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const MessagesScreen()),
-      );
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MessagesScreen()));
     } else if (index == 4) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const ProfileScreen()),
-      );
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ProfileScreen()));
     } else {
       setState(() {
         _selectedIndex = index;
@@ -42,12 +35,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AuthService authService = AuthService(); // Create an instance
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false,
+        leadingWidth: 0,
         title: Row(
           children: [
             Image.asset('assets/images/logo.png', height: 35),
@@ -58,13 +53,13 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.notifications_none, color: Colors.black),
             onPressed: () {},
           ),
+          // Updated Sign Out Button
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.black),
-            onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (Route<dynamic> route) => false,
-              );
+            onPressed: () async {
+              print("Sign Out button pressed");
+              await authService.signOut();
+              // AuthWrapper will automatically navigate back to LoginScreen
             },
           ),
           const Padding(
@@ -76,78 +71,83 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+      // ... (rest of the body and bottomNavigationBar remain the same)
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              _buildSearchBar(),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Categories'),
-              const SizedBox(height: 16),
-              _buildCategoriesRow(),
-              const SizedBox(height: 24),
-              _buildActionButtons(),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Featured Items'),
-              const SizedBox(height: 16),
-              _buildFeaturedItemCard(
-                imageUrl: 'assets/images/gadget1.jpg',
-                title: 'iPhone 12 - Cracked Screen',
-                description: 'Screen broken, otherwise works fine',
-                price: '\$85',
-                status: 'Broken',
-                statusColor: Colors.orange,
-                time: '2h ago',
-              ),
-              const SizedBox(height: 16),
-              _buildFeaturedItemCard(
-                imageUrl: 'assets/images/gadget2.jpg',
-                title: 'MacBook Pro 2018',
-                description: 'Water damage, good for parts',
-                price: '\$150',
-                status: 'For Parts',
-                statusColor: Colors.blue,
-                time: '5h ago',
-              ),
-              const SizedBox(height: 16),
-              _buildFeaturedItemCard(
-                imageUrl: 'assets/images/gadget3.jpg',
-                title: 'Xbox Controller',
-                description: 'Slightly worn but fully functional',
-                price: '\$25',
-                status: 'Working',
-                statusColor: Colors.green,
-                time: '1d ago',
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Browse'),
-          BottomNavigationBarItem(icon: Icon(Icons.add_circle, size: 40), label: 'Sell'),
-          BottomNavigationBarItem(icon: Icon(Icons.message_outlined), label: 'Message'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.green,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        showUnselectedLabels: true,
-        backgroundColor: Colors.white,
-        elevation: 2,
-      ),
+         child: Padding(
+           padding: const EdgeInsets.symmetric(horizontal: 16.0),
+           child: Column(
+             crossAxisAlignment: CrossAxisAlignment.start,
+             children: [
+               const SizedBox(height: 16),
+               _buildSearchBar(),
+               const SizedBox(height: 24),
+               _buildSectionTitle('Categories'),
+               const SizedBox(height: 16),
+               _buildCategoriesRow(),
+               const SizedBox(height: 24),
+               _buildActionButtons(),
+               const SizedBox(height: 24),
+               _buildSectionTitle('Featured Items'),
+               const SizedBox(height: 16),
+               _buildFeaturedItemCard(
+                 imageUrl: 'assets/images/gadget1.jpg',
+                 title: 'iPhone 12 - Cracked Screen',
+                 description: 'Screen broken, otherwise works fine',
+                 price: '\$85',
+                 status: 'Broken',
+                 statusColor: Colors.orange,
+                 time: '2h ago',
+               ),
+               const SizedBox(height: 16),
+               _buildFeaturedItemCard(
+                 imageUrl: 'assets/images/gadget2.jpg',
+                 title: 'MacBook Pro 2018',
+                 description: 'Water damage, good for parts',
+                 price: '\$150',
+                 status: 'For Parts',
+                 statusColor: Colors.blue,
+                 time: '5h ago',
+               ),
+               const SizedBox(height: 16),
+               _buildFeaturedItemCard(
+                 imageUrl: 'assets/images/gadget3.jpg',
+                 title: 'Xbox Controller',
+                 description: 'Slightly worn but fully functional',
+                 price: '\$25',
+                 status: 'Working',
+                 statusColor: Colors.green,
+                 time: '1d ago',
+               ),
+               const SizedBox(height: 24),
+             ],
+           ),
+         ),
+       ),
+       bottomNavigationBar: BottomNavigationBar(
+         items: const <BottomNavigationBarItem>[
+           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Browse'),
+           BottomNavigationBarItem(icon: Icon(Icons.add_circle, size: 40), label: 'Sell'),
+           BottomNavigationBarItem(icon: Icon(Icons.message_outlined), label: 'Message'),
+           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+         ],
+         currentIndex: _selectedIndex,
+         selectedItemColor: Colors.green,
+         unselectedItemColor: Colors.grey,
+         onTap: _onItemTapped,
+         type: BottomNavigationBarType.fixed,
+         showUnselectedLabels: true,
+         backgroundColor: Colors.white,
+         elevation: 2,
+       ),
     );
   }
 
-  Widget _buildSearchBar() {
+  // --- Helper Methods ---
+  // ... (_buildSearchBar, _buildSectionTitle, _buildCategoriesRow,
+  //      _buildCategoryItem, _buildActionButtons, _buildFeaturedItemCard remain the same)
+
+   Widget _buildSearchBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
@@ -222,9 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const PostItemScreen()),
-              );
+               Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostItemScreen()));
             },
             icon: const Icon(Icons.add_circle),
             label: const Text('Sell Item'),
@@ -255,10 +253,10 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => ItemDetailsScreen(
+              imageUrls: [imageUrl],
               title: title,
               price: price,
               status: status,
-              imageUrls: [imageUrl], // <-- FIXED: use imageUrls
             ),
           ),
         );

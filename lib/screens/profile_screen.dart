@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'my_listings_screen.dart';
 import 'my_purchases_screen.dart';
+import 'edit_profile_screen.dart';
+import '../services/auth_services.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -91,7 +94,44 @@ class ProfileScreen extends StatelessWidget {
                         title: 'Logout',
                         iconColor: Colors.red,
                         textColor: Colors.red,
-                        onTap: () {},
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Confirm Logout'),
+                                content: const Text('Are you sure you want to logout?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      final authService = AuthService();
+                                      await authService.signOut();
+                                      // Pop the dialog first
+                                      Navigator.of(context).pop();
+                                      // Pop to root and push login screen
+                                      if (context.mounted) {
+                                        Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            builder: (context) => const LoginScreen(),
+                                          ),
+                                          (Route<dynamic> route) => false,
+                                        );
+                                      }
+                                    },
+                                    child: const Text(
+                                      'Logout',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
                       ),
                       const SizedBox(height: 32),
                     ],
@@ -138,8 +178,15 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.settings, color: Colors.white, size: 28),
-                onPressed: () {},
+                icon: const Icon(Icons.edit, color: Colors.white, size: 24),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfileScreen(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
