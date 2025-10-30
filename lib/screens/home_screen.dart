@@ -1,6 +1,7 @@
 // lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'browse_screen.dart';
+import 'category_screen.dart';
 import 'item_details_screen.dart';
 import 'messages_screen.dart';
 import 'post_item_screen.dart';
@@ -206,19 +207,32 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCategoryItem(IconData icon, String label, Color backgroundColor, Color iconColor) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(15),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => CategoryScreen(
+              category: label,
+              categoryColor: iconColor,
+              categoryIcon: icon,
+            ),
           ),
-          child: Icon(icon, size: 30, color: iconColor),
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: const TextStyle(color: Colors.black54)),
-      ],
+        );
+      },
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Icon(icon, size: 30, color: iconColor),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(color: Colors.black54)),
+        ],
+      ),
     );
   }
 
