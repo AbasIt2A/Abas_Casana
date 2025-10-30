@@ -1,9 +1,7 @@
 // lib/main.dart
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'firebase_options.dart';
 import 'services/auth_services.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -11,18 +9,20 @@ import 'screens/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+    // Initialize Supabase
+    await Supabase.initialize(
+      url: 'https://abesvjbwyaywhpdnnykq.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiZXN2amJ3eWF5d2hwZG5ueWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MzMyNDIsImV4cCI6MjA3NzQwOTI0Mn0.F9bWXCbEiOfdvkSoMzbGgz5-aueAK_uvVoDoYcwK0_Y',
     );
-    print('Firebase initialized successfully');
+    print('Supabase initialized successfully');
     runApp(const MyApp());
   } catch (e) {
-    print('Error initializing Firebase: $e');
-    // Show error widget if Firebase fails to initialize
+    print('Error initializing Supabase: $e');
+    // Show error widget if Supabase fails to initialize
     runApp(MaterialApp(
       home: Scaffold(
         body: Center(
-          child: Text('Failed to initialize Firebase: $e'),
+          child: Text('Failed to initialize Supabase: $e'),
         ),
       ),
     ));
@@ -55,7 +55,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final AuthService authService = AuthService();
 
-    return StreamBuilder<User?>(
+    return StreamBuilder<AuthState>(
       stream: authService.authStateChanges,
       builder: (context, snapshot) {
         // Check connection state
@@ -63,8 +63,8 @@ class AuthWrapper extends StatelessWidget {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         // Check if user data exists (logged in)
-        if (snapshot.hasData) {
-          print("User is logged in: ${snapshot.data?.uid}");
+        if (snapshot.hasData && snapshot.data?.session != null) {
+          print("User is logged in: ${snapshot.data?.session?.user.id}");
           return const HomeScreen(); // Show Home screen if logged in
         }
         // User is logged out

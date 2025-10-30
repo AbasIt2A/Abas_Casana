@@ -5,7 +5,9 @@ import 'item_details_screen.dart';
 import 'messages_screen.dart';
 import 'post_item_screen.dart';
 import 'profile_screen.dart';
-import '../services/auth_services.dart'; // Import AuthService
+import '../models/listing_item.dart';
+// auth_services import removed (not used in HomeScreen AppBar anymore)
+import '../services/listings_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,11 +19,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index) async {
     if (index == 1) {
       Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BrowseScreen()));
     } else if (index == 2) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostItemScreen()));
+      final newItem = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostItemScreen()));
+      if (newItem != null && newItem is ListingItem && mounted) {
+        ListingsService().addListing(newItem);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Item posted successfully! View it in My Listings.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     } else if (index == 3) {
       Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MessagesScreen()));
     } else if (index == 4) {
@@ -35,17 +47,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = AuthService(); // Create an instance
+  // AuthService not needed in this AppBar since sign-out button removed
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
         leadingWidth: 0,
         title: Row(
           children: [
-            Image.asset('assets/images/logo.png', height: 35),
+            // Make the logo larger for better visibility
+            Image.asset('assets/images/logo.png', height: 56),
           ],
         ),
         actions: [
@@ -53,15 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.notifications_none, color: Colors.black),
             onPressed: () {},
           ),
-          // Updated Sign Out Button
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black),
-            onPressed: () async {
-              print("Sign Out button pressed");
-              await authService.signOut();
-              // AuthWrapper will automatically navigate back to LoginScreen
-            },
-          ),
+          // Sign out/back icon removed as requested (profile avatar remains)
           const Padding(
             padding: EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
@@ -221,8 +227,18 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {
-               Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostItemScreen()));
+            onPressed: () async {
+               final newItem = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostItemScreen()));
+               if (newItem != null && newItem is ListingItem && mounted) {
+                 ListingsService().addListing(newItem);
+                 ScaffoldMessenger.of(context).showSnackBar(
+                   const SnackBar(
+                     content: Text('Item posted successfully! View it in My Listings.'),
+                     backgroundColor: Colors.green,
+                     duration: Duration(seconds: 3),
+                   ),
+                 );
+               }
             },
             icon: const Icon(Icons.add_circle),
             label: const Text('Sell Item'),
@@ -272,23 +288,36 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(15),
-                    topRight: Radius.circular(15),
+                // Image fills the top area without internal padding so the product itself is shown
+                Container(
+                  height: 250,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(15),
+                      topRight: Radius.circular(15),
+                    ),
                   ),
-                  child: Image.asset(
-                    imageUrl,
-                    height: 150,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 150,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 50),
-                      );
-                    },
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(15),
+                      topRight: Radius.circular(15),
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        imageUrl,
+                        height: 240,
+                        width: double.infinity,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 50),
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
                 Positioned(

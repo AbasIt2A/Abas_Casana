@@ -183,6 +183,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
         _buildItemCard(
           imageUrl: 'assets/images/gadget1.jpg',
           title: 'iPhone 12 - Cracked',
+          description: '',
           price: '\$45',
           status: 'For Parts',
           statusColor: Colors.red,
@@ -191,6 +192,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
         _buildItemCard(
           imageUrl: 'assets/images/gadget2.jpg',
           title: 'Dell Laptop',
+          description: '',
           price: '\$120',
           status: 'Working',
           statusColor: Colors.green,
@@ -200,6 +202,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
         _buildItemCard(
           imageUrl: 'assets/images/gadget4.jpg',
           title: 'iPad Mini',
+          description: '',
           price: '\$90',
           status: 'Working',
           statusColor: Colors.green,
@@ -209,6 +212,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
         _buildItemCard(
           imageUrl: 'assets/images/gadget5.jpg',
           title: 'PS4 Console',
+          description: '',
           price: '\$85',
           status: 'Working',
           statusColor: Colors.green,
@@ -245,14 +249,14 @@ class _BrowseScreenState extends State<BrowseScreen> {
   Widget _buildItemCard({
     required String imageUrl,
     required String title,
-    String? description,
+    required String description,
     required String price,
     required String status,
     required Color statusColor,
     bool showViewButton = false,
     bool showClaimButton = false,
   }) {
-    bool isListView = description != null;
+    bool isListView = description.isNotEmpty;
 
     return GestureDetector(
       onTap: () {
@@ -328,10 +332,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (isListView) ...[
+                  if (isListView && description.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
-                      description ?? '',
+                      description,
                       style: const TextStyle(color: Colors.grey, fontSize: 12),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

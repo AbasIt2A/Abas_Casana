@@ -1,128 +1,96 @@
 // lib/services/auth_service.dart
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter/foundation.dart' show kIsWeb; // For web check
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'database_service.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  // Initialize GoogleSignIn with required scopes
-  static final GoogleSignIn _googleSignIn = GoogleSignIn.standard();
-
+  final SupabaseClient _supabase = Supabase.instance.client;
   final DatabaseService _dbService = DatabaseService();
 
   // Sign up with email and password
-  Future<UserCredential?> signUpWithEmailAndPassword({
+  Future<AuthResponse?> signUpWithEmailAndPassword({
     required String email,
     required String password,
     required String fullName,
     required String phoneNumber,
   }) async {
     try {
-      // Create user with email and password
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      final AuthResponse response = await _supabase.auth.signUp(
         email: email,
         password: password,
       );
 
-      // Update user profile with full name
-      await userCredential.user?.updateDisplayName(fullName);
-
-      // Store user data in Firestore
-      if (userCredential.user != null) {
+      // Store user data in database
+      if (response.user != null) {
         await _dbService.createUserProfile(
-          userId: userCredential.user!.uid,
+          userId: response.user!.id,
           fullName: fullName,
           email: email,
           phoneNumber: phoneNumber,
         );
       }
 
-      print('User account created: ${userCredential.user?.email}');
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      print('Firebase Auth Exception during signup: ${e.message}');
-      rethrow; // Rethrow to handle in UI
+      print('User account created: ${response.user?.email}');
+      return response;
+    } on AuthException catch (e) {
+      print('Supabase Auth Exception during signup: ${e.message}');
+      rethrow;
     }
   }
 
   // Sign in with email and password
-  Future<UserCredential?> signInWithEmailAndPassword({
+  Future<AuthResponse?> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final AuthResponse response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      print('User signed in: ${userCredential.user?.email}');
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      print('Firebase Auth Exception during sign in: ${e.message}');
-      rethrow; // Rethrow to handle in UI
+      print('User signed in: ${response.user?.email}');
+      return response;
+    } on AuthException catch (e) {
+      print('Supabase Auth Exception during sign in: ${e.message}');
+      rethrow;
     }
   }
 
-  // Sign in with Google
-  Future<UserCredential?> signInWithGoogle() async {
+  // Sign in with Google (OAuth)
+  Future<bool> signInWithGoogle() async {
     try {
-      if (kIsWeb) {
-        // Web sign-in
-        GoogleAuthProvider googleProvider = GoogleAuthProvider();
-        UserCredential userCredential = await _auth.signInWithPopup(googleProvider);
-        print('Signed in user (web): ${userCredential.user?.displayName}');
-        return userCredential;
-      } else {
-        // Mobile sign-in
-        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-        if (googleUser == null) {
-          print('Google sign in cancelled by user');
-          return null;
-        }
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-        if (googleAuth.idToken == null) {
-          print('Google sign in failed: idToken is null');
-          return null;
-        }
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          idToken: googleAuth.idToken,
-        );
-        UserCredential userCredential = await _auth.signInWithCredential(credential);
-        print('Signed in user: ${userCredential.user?.displayName}');
-        return userCredential;
-      }
-    } on FirebaseAuthException catch (e) {
-      print('Firebase Auth Exception during Google sign in: ${e.message}');
-      return null;
+      final bool response = await _supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+      );
+      print('Signed in user with Google');
+      return response;
+    } on AuthException catch (e) {
+      print('Supabase Auth Exception during Google sign in: ${e.message}');
+      return false;
     } catch (e) {
       print('Error during Google sign in: $e');
-      return null;
+      return false;
     }
   }
 
   // Sign out
   Future<void> signOut() async {
     try {
-      if (!kIsWeb) {
-        await _googleSignIn.signOut();
-      }
-      await _auth.signOut();
+      await _supabase.auth.signOut();
       print('User signed out.');
     } catch (e) {
       print('Error signing out: $e');
     }
   }
 
-  // Auth state changes stream - listens for login/logout events
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  // Auth state changes stream
+  Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
 
   // Send password reset email
   Future<void> sendPasswordResetEmail(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
+      await _supabase.auth.resetPasswordForEmail(email);
       print('Password reset email sent to: $email');
-    } on FirebaseAuthException catch (e) {
+    } on AuthException catch (e) {
       print('Error sending password reset email: ${e.message}');
       rethrow;
     }
@@ -131,25 +99,26 @@ class AuthService {
   // Send email verification
   Future<void> sendEmailVerification() async {
     try {
-      final user = _auth.currentUser;
-      if (user != null && !user.emailVerified) {
-        await user.sendEmailVerification();
-        print('Email verification sent to: ${user.email}');
+      final user = _supabase.auth.currentUser;
+      if (user != null) {
+        // Supabase handles email verification differently
+        // The email is verified after the user confirms via email link
+        print('Verification email will be sent to: ${user.email}');
       }
-    } on FirebaseAuthException catch (e) {
-      print('Error sending email verification: ${e.message}');
+    } catch (e) {
+      print('Error sending email verification: $e');
       rethrow;
     }
   }
 
   // Check if email is verified
   bool isEmailVerified() {
-    final user = _auth.currentUser;
-    return user?.emailVerified ?? false;
+    final user = _supabase.auth.currentUser;
+    return user?.emailConfirmedAt != null;
   }
 
   // Get current user
   User? getCurrentUser() {
-    return _auth.currentUser;
+    return _supabase.auth.currentUser;
   }
 }

@@ -1,0 +1,28 @@
+/// Supabase Configuration
+/// 
+/// Instructions:
+/// 1. Go to your Supabase Dashboard (https://supabase.com/dashboard)
+/// 2. Select your project
+/// 3. Go to Settings > API
+/// 4. Copy your Project URL and anon key
+/// 5. Replace the values below
+/// 6. Rename this file to 'supabase_config.dart'
+
+class SupabaseConfig {
+  // Your Supabase Project URL
+  // Example: 'https://abcdefghijklmnop.supabase.co'
+  static const String supabaseUrl = 'YOUR_SUPABASE_URL';
+
+  // Your Supabase Anon Key (Public)
+  // This is safe to use in client applications
+  // Example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+
+  // Optional: Your Supabase Service Role Key (Keep secret!)
+  // Only use this on the server side, never expose in client apps
+  static const String? supabaseServiceRoleKey = null;
+
+  // OAuth Redirect URL
+  // Used for OAuth providers like Google Sign-In
+  static const String redirectUrl = 'io.supabase.flutter://callback';
+}

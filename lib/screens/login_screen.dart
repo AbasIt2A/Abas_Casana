@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'signup_screen.dart';
 import '../services/auth_services.dart';
 
@@ -143,9 +143,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       password: _passwordController.text,
                     );
                     // The AuthWrapper will automatically handle navigation
-                  } on FirebaseAuthException catch (e) {
+                  } on AuthException catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(e.message ?? 'An error occurred during login')),
+                      SnackBar(content: Text(e.message)),
                     );
                   } finally {
                     if (mounted) {
@@ -174,6 +174,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 32),
+            // Google Sign-In temporarily disabled until OAuth is configured
+            // To enable: Set up Google OAuth in Supabase Dashboard > Authentication > Providers
+            /*
             Row(
               children: [
                 Expanded(child: Divider(color: Colors.grey[300])),
@@ -188,12 +191,10 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
             const SizedBox(height: 32),
-            // Updated Google Sign-In Button
             ElevatedButton.icon(
               onPressed: () async {
                 print("Google Sign In button pressed");
                 await authService.signInWithGoogle();
-                // AuthWrapper will automatically navigate if sign-in is successful
               },
               icon: Image.asset('assets/images/google.png', height: 24.0),
               label: const Text('Sign in with Google'),
@@ -207,6 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
+            */
             const SizedBox(height: 48),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

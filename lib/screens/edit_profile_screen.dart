@@ -21,7 +21,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _isLoading = false;
   String? _currentImageUrl;
   File? _newProfileImage;
-  Map<String, dynamic>? _userData;
 
   @override
   void initState() {
@@ -35,10 +34,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final userData = await _dbService.getCurrentUserProfile();
       if (userData != null) {
         setState(() {
-          _userData = userData;
-          _fullNameController.text = userData['fullName'] ?? '';
-          _phoneController.text = userData['phoneNumber'] ?? '';
-          _currentImageUrl = userData['profilePicUrl'];
+          _fullNameController.text = userData['full_name'] ?? '';
+          _phoneController.text = userData['phone_number'] ?? '';
+          _currentImageUrl = userData['profile_pic_url'];
         });
       }
     } catch (e) {
@@ -86,12 +84,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (_newProfileImage != null) {
         newImageUrl = await _dbService.uploadProfilePicture(
           _newProfileImage!,
-          user.uid,
+          user.id,
         );
       }
 
       await _dbService.updateUserProfile(
-        userId: user.uid,
+        userId: user.id,
         fullName: _fullNameController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
         profilePicUrl: newImageUrl ?? _currentImageUrl,

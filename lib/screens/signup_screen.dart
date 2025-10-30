@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/auth_services.dart';
 import '../services/database_service.dart';
@@ -120,9 +120,10 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 24),
               _buildCreateAccountButton(),
               const SizedBox(height: 24),
-              _buildDivider(),
-              const SizedBox(height: 24),
-              _buildGoogleButton(),
+              // Google Sign-In temporarily disabled
+              // _buildDivider(),
+              // const SizedBox(height: 24),
+              // _buildGoogleButton(),
               const SizedBox(height: 32),
               _buildSignInLink(),
             ],
@@ -435,7 +436,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
         try {
           final phoneNumber = '$_selectedCountryCode${_phoneController.text}';
-          final UserCredential? userCredential = await _authService.signUpWithEmailAndPassword(
+          final AuthResponse? authResponse = await _authService.signUpWithEmailAndPassword(
             email: _emailController.text.trim(),
             password: _passwordController.text,
             fullName: _fullNameController.text.trim(),
@@ -443,15 +444,15 @@ class _SignupScreenState extends State<SignupScreen> {
           );
 
           // Upload profile picture if selected
-          if (userCredential?.user != null && _profileImage != null) {
+          if (authResponse?.user != null && _profileImage != null) {
             final String? imageUrl = await _dbService.uploadProfilePicture(
               _profileImage!,
-              userCredential!.user!.uid,
+              authResponse!.user!.id,
             );
 
             if (imageUrl != null) {
               await _dbService.updateUserProfile(
-                userId: userCredential.user!.uid,
+                userId: authResponse.user!.id,
                 profilePicUrl: imageUrl,
               );
             }
@@ -464,9 +465,9 @@ class _SignupScreenState extends State<SignupScreen> {
             );
             Navigator.pop(context); // Go back to login screen
           }
-        } on FirebaseAuthException catch (e) {
+        } on AuthException catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.message ?? 'An error occurred during signup')),
+            SnackBar(content: Text(e.message)),
           );
         } finally {
           if (mounted) {
@@ -489,39 +490,6 @@ class _SignupScreenState extends State<SignupScreen> {
               child: CircularProgressIndicator(color: Colors.white),
             )
           : const Text('Create Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: Colors.grey[300])),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: Text(
-            'or continue with',
-            style: TextStyle(color: Colors.grey[500]),
-          ),
-        ),
-        Expanded(child: Divider(color: Colors.grey[300])),
-      ],
-    );
-  }
-
-  Widget _buildGoogleButton() {
-    return ElevatedButton.icon(
-      onPressed: () {},
-      icon: Image.asset('assets/images/google.png', height: 24.0),
-      label: const Text('Continue with Google'),
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.black87,
-        backgroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.grey.shade300),
-        ),
-      ),
     );
   }
 

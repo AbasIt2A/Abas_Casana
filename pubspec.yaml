@@ -8,11 +8,8 @@ environment:
   sdk: ^3.9.2
 
 dependencies:
-  firebase_core: ^2.24.0
-  firebase_auth: ^4.15.0
-  google_sign_in: ^6.1.6
-  cloud_firestore: ^4.13.3
-  firebase_storage: ^11.5.3
+  supabase_flutter: ^2.5.0
+  supabase: ^2.1.0
   image_picker: ^1.0.4
   flutter:
     sdk: flutter

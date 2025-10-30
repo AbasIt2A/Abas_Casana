@@ -1,12 +1,8 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DatabaseService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   // Create or update user profile
   Future<void> createUserProfile({
@@ -17,14 +13,15 @@ class DatabaseService {
     String? profilePicUrl,
   }) async {
     try {
-      await _db.collection('users').doc(userId).set({
-        'fullName': fullName,
+      await _supabase.from('users').insert({
+        'id': userId,
+        'full_name': fullName,
         'email': email,
-        'phoneNumber': phoneNumber,
-        'profilePicUrl': profilePicUrl,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+        'phone_number': phoneNumber,
+        'profile_pic_url': profilePicUrl,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      });
     } catch (e) {
       print('Error creating user profile: $e');
       rethrow;
@@ -34,15 +31,21 @@ class DatabaseService {
   // Upload profile picture and get URL
   Future<String?> uploadProfilePicture(File imageFile, String userId) async {
     try {
-      // Create a reference to the location you want to upload to in Firebase Storage
-      final Reference storageRef = _storage.ref().child('profile_pictures/$userId.jpg');
+      final fileName = '$userId.jpg';
+      final filePath = 'profile_pictures/$fileName';
 
-      // Upload the file to Firebase Storage
-      final UploadTask uploadTask = storageRef.putFile(imageFile);
-      final TaskSnapshot snapshot = await uploadTask;
+      // Upload the file to Supabase Storage
+      await _supabase.storage.from('profile-pictures').upload(
+        filePath,
+        imageFile,
+        fileOptions: const FileOptions(upsert: true),
+      );
 
-      // Get the download URL
-      final String downloadUrl = await snapshot.ref.getDownloadURL();
+      // Get the public URL
+      final String downloadUrl = _supabase.storage
+          .from('profile-pictures')
+          .getPublicUrl(filePath);
+      
       return downloadUrl;
     } catch (e) {
       print('Error uploading profile picture: $e');
@@ -53,8 +56,13 @@ class DatabaseService {
   // Get user profile
   Future<Map<String, dynamic>?> getUserProfile(String userId) async {
     try {
-      final DocumentSnapshot doc = await _db.collection('users').doc(userId).get();
-      return doc.exists ? doc.data() as Map<String, dynamic> : null;
+      final response = await _supabase
+          .from('users')
+          .select()
+          .eq('id', userId)
+          .single();
+      
+      return response as Map<String, dynamic>?;
     } catch (e) {
       print('Error getting user profile: $e');
       return null;
@@ -70,14 +78,14 @@ class DatabaseService {
   }) async {
     try {
       final Map<String, dynamic> updateData = {
-        'updatedAt': FieldValue.serverTimestamp(),
+        'updated_at': DateTime.now().toIso8601String(),
       };
 
-      if (fullName != null) updateData['fullName'] = fullName;
-      if (phoneNumber != null) updateData['phoneNumber'] = phoneNumber;
-      if (profilePicUrl != null) updateData['profilePicUrl'] = profilePicUrl;
+      if (fullName != null) updateData['full_name'] = fullName;
+      if (phoneNumber != null) updateData['phone_number'] = phoneNumber;
+      if (profilePicUrl != null) updateData['profile_pic_url'] = profilePicUrl;
 
-      await _db.collection('users').doc(userId).update(updateData);
+      await _supabase.from('users').update(updateData).eq('id', userId);
     } catch (e) {
       print('Error updating user profile: $e');
       rethrow;
@@ -86,9 +94,9 @@ class DatabaseService {
 
   // Get current user profile
   Future<Map<String, dynamic>?> getCurrentUserProfile() async {
-    final User? currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      return await getUserProfile(currentUser.uid);
+    final user = _supabase.auth.currentUser;
+    if (user != null) {
+      return await getUserProfile(user.id);
     }
     return null;
   }
