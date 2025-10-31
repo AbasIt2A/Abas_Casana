@@ -25,120 +25,125 @@ class ProfileScreen extends StatelessWidget {
             automaticallyImplyLeading: false,
           ),
           SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-                      _buildStatsRow(),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('My Activity'),
-                      const SizedBox(height: 8),
-                      _buildListTile(
-                        icon: Icons.format_list_bulleted,
-                        title: 'My Listings',
-                        subtitle: 'View your posted items',
-                        trailingText: '3 Active',
-                        trailingColor: Colors.green,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const MyListingsScreen()),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _buildListTile(
-                        icon: Icons.shopping_bag_outlined,
-                        title: 'My Purchases',
-                        subtitle: 'Track your orders',
-                        trailingText: '2 Recent',
-                        trailingColor: Colors.blue,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const MyPurchasesScreen()),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Settings'),
-                      const SizedBox(height: 8),
-                      _buildListTile(
-                        icon: Icons.person_outline,
-                        title: 'Account Settings',
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 8),
-                      _buildListTile(
-                        icon: Icons.notifications_none,
-                        title: 'Notifications',
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 8),
-                      _buildListTile(
-                        icon: Icons.shield_outlined,
-                        title: 'Privacy & Security',
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 8),
-                      _buildListTile(
-                        icon: Icons.help_outline,
-                        title: 'Help & Support',
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 24),
-                      _buildListTile(
-                        icon: Icons.logout,
-                        title: 'Logout',
-                        iconColor: Colors.red,
-                        textColor: Colors.red,
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text('Confirm Logout'),
-                                content: const Text('Are you sure you want to logout?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(),
-                                    child: const Text('Cancel'),
+            delegate: SliverChildListDelegate([
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildStatsRow(),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('My Activity'),
+                    const SizedBox(height: 8),
+                    _buildListTile(
+                      icon: Icons.format_list_bulleted,
+                      title: 'My Listings',
+                      subtitle: 'View your posted items',
+                      trailingText: '3 Active',
+                      trailingColor: Colors.green,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const MyListingsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _buildListTile(
+                      icon: Icons.shopping_bag_outlined,
+                      title: 'My Purchases',
+                      subtitle: 'Track your orders',
+                      trailingText: '2 Recent',
+                      trailingColor: Colors.blue,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const MyPurchasesScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('Settings'),
+                    const SizedBox(height: 8),
+                    _buildListTile(
+                      icon: Icons.person_outline,
+                      title: 'Account Settings',
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 8),
+                    _buildListTile(
+                      icon: Icons.notifications_none,
+                      title: 'Notifications',
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 8),
+                    _buildListTile(
+                      icon: Icons.shield_outlined,
+                      title: 'Privacy & Security',
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 8),
+                    _buildListTile(
+                      icon: Icons.help_outline,
+                      title: 'Help & Support',
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 24),
+                    _buildListTile(
+                      icon: Icons.logout,
+                      title: 'Logout',
+                      iconColor: Colors.red,
+                      textColor: Colors.red,
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Confirm Logout'),
+                              content: const Text(
+                                'Are you sure you want to logout?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    final authService = AuthService();
+                                    await authService.signOut();
+                                    // Pop the dialog first
+                                    Navigator.of(context).pop();
+                                    // Pop to root and push login screen
+                                    if (context.mounted) {
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const LoginScreen(),
+                                        ),
+                                        (Route<dynamic> route) => false,
+                                      );
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Logout',
+                                    style: TextStyle(color: Colors.red),
                                   ),
-                                  TextButton(
-                                    onPressed: () async {
-                                      final authService = AuthService();
-                                      await authService.signOut();
-                                      // Pop the dialog first
-                                      Navigator.of(context).pop();
-                                      // Pop to root and push login screen
-                                      if (context.mounted) {
-                                        Navigator.of(context).pushAndRemoveUntil(
-                                          MaterialPageRoute(
-                                            builder: (context) => const LoginScreen(),
-                                          ),
-                                          (Route<dynamic> route) => false,
-                                        );
-                                      }
-                                    },
-                                    child: const Text(
-                                      'Logout',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ]),
           ),
         ],
       ),
@@ -152,10 +157,7 @@ class ProfileScreen extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF00C6FF),
-            Color(0xFF0072FF),
-          ],
+          colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
         ),
       ),
       child: Column(
@@ -165,7 +167,7 @@ class ProfileScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               IconButton(
+              IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -198,7 +200,9 @@ class ProfileScreen extends StatelessWidget {
                   const CircleAvatar(
                     radius: 35,
                     // MODIFIED: Updated to use your new profile image
-                    backgroundImage: AssetImage('assets/images/ramon_profile.jpg'),
+                    backgroundImage: AssetImage(
+                      'assets/images/ramon_profile.jpg',
+                    ),
                   ),
                   Positioned(
                     bottom: 0,
@@ -210,7 +214,11 @@ class ProfileScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.blue, width: 2),
                       ),
-                      child: const Icon(Icons.camera_alt, color: Colors.blue, size: 18),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.blue,
+                        size: 18,
+                      ),
                     ),
                   ),
                 ],
@@ -250,8 +258,6 @@ class ProfileScreen extends StatelessWidget {
         _buildStatCard('12', 'Items Sold', Colors.purple.shade50),
         const SizedBox(width: 16),
         _buildStatCard('8', 'Items Bought', Colors.green.shade50),
-        const SizedBox(width: 16),
-        _buildStatCard('5', 'Items Donated', Colors.orange.shade50),
       ],
     );
   }
@@ -278,10 +284,7 @@ class ProfileScreen extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
         ),
@@ -335,7 +338,9 @@ class ProfileScreen extends StatelessWidget {
             color: textColor,
           ),
         ),
-        subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(color: Colors.grey)) : null,
+        subtitle: subtitle != null
+            ? Text(subtitle, style: const TextStyle(color: Colors.grey))
+            : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

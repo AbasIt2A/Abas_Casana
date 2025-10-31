@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'item_details_screen.dart';
+import '../services/listings_service.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
@@ -96,7 +97,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
             label: const Text('Filters', style: TextStyle(color: Colors.black)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: Colors.grey.shade300),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               padding: const EdgeInsets.symmetric(vertical: 12),
             ),
           ),
@@ -111,7 +114,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
           child: Row(
             children: [
               IconButton(
-                icon: Icon(Icons.grid_view, color: isGridView ? Colors.green : Colors.grey),
+                icon: Icon(
+                  Icons.grid_view,
+                  color: isGridView ? Colors.green : Colors.grey,
+                ),
                 onPressed: () {
                   setState(() {
                     isGridView = true;
@@ -119,7 +125,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
                 },
               ),
               IconButton(
-                icon: Icon(Icons.list, color: isGridView ? Colors.grey : Colors.green),
+                icon: Icon(
+                  Icons.list,
+                  color: isGridView ? Colors.grey : Colors.green,
+                ),
                 onPressed: () {
                   setState(() {
                     isGridView = false;
@@ -135,7 +144,14 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
   Widget _buildTagFilters() {
     // MODIFIED: Removed 'Free' and 'Repair' from the tags list
-    final tags = ['All Items', 'Working', 'For Parts', 'Phones', 'Laptops', 'New'];
+    final tags = [
+      'All Items',
+      'Working',
+      'For Parts',
+      'Phones',
+      'Laptops',
+      'New',
+    ];
     return SizedBox(
       height: 40,
       child: ListView.builder(
@@ -296,7 +312,11 @@ class _BrowseScreenState extends State<BrowseScreen> {
                       return Container(
                         height: 120,
                         color: Colors.grey[200],
-                        child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 50),
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey,
+                          size: 50,
+                        ),
                       );
                     },
                   ),
@@ -305,18 +325,52 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   top: 10,
                   left: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(10)),
-                    child: Text(status, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      status,
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
                   ),
                 ),
                 Positioned(
                   top: 10,
                   right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.7), shape: BoxShape.circle),
-                    child: const Icon(Icons.favorite_border, color: Colors.black, size: 20),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        // Generate unique ID for browse items based on title
+                        final itemId = 'browse_${title.replaceAll(' ', '_')}';
+                        ListingsService().toggleFavoriteById(itemId);
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        ListingsService().isFavorite(
+                              'browse_${title.replaceAll(' ', '_')}',
+                            )
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color:
+                            ListingsService().isFavorite(
+                              'browse_${title.replaceAll(' ', '_')}',
+                            )
+                            ? Colors.red
+                            : Colors.black,
+                        size: 20,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -328,7 +382,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -344,7 +401,11 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   const SizedBox(height: 8),
                   Text(
                     price,
-                    style: const TextStyle(color: Colors.green, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   if (showViewButton) ...[
                     const SizedBox(height: 8),
@@ -366,10 +427,15 @@ class _BrowseScreenState extends State<BrowseScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                         ),
-                        child: const Text('View', style: TextStyle(fontSize: 14)),
+                        child: const Text(
+                          'View',
+                          style: TextStyle(fontSize: 14),
+                        ),
                       ),
                     ),
                   ],
@@ -382,10 +448,15 @@ class _BrowseScreenState extends State<BrowseScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                         ),
-                        child: const Text('Claim', style: TextStyle(fontSize: 14)),
+                        child: const Text(
+                          'Claim',
+                          style: TextStyle(fontSize: 14),
+                        ),
                       ),
                     ),
                   ],

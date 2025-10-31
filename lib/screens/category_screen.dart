@@ -22,7 +22,7 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final ListingsService _listingsService = ListingsService();
   String _sortBy = 'Recent'; // Recent, Price Low-High, Price High-Low
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,12 +42,19 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 color: widget.categoryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(widget.categoryIcon, color: widget.categoryColor, size: 20),
+              child: Icon(
+                widget.categoryIcon,
+                color: widget.categoryColor,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Text(
               widget.category,
-              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -61,8 +68,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
             },
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'Recent', child: Text('Most Recent')),
-              const PopupMenuItem(value: 'Price Low-High', child: Text('Price: Low to High')),
-              const PopupMenuItem(value: 'Price High-Low', child: Text('Price: High to Low')),
+              const PopupMenuItem(
+                value: 'Price Low-High',
+                child: Text('Price: Low to High'),
+              ),
+              const PopupMenuItem(
+                value: 'Price High-Low',
+                child: Text('Price: High to Low'),
+              ),
             ],
           ),
         ],
@@ -76,13 +89,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
     final userListings = _listingsService.userListings
         .where((item) => item.category == widget.category)
         .toList();
-    
+
     // Sample data for each category
     final sampleData = _getSampleDataForCategory();
-    
+
     // Combine and sort
     final allItems = [...userListings, ...sampleData];
-    
+
     if (allItems.isEmpty) {
       return Center(
         child: Column(
@@ -259,133 +272,188 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 
   Widget _buildProductCard(ListingItem item) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => ItemDetailsScreen(
-              imageUrls: item.imageUrls,
-              title: item.title,
-              price: item.price,
-              status: item.condition,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image
-            Expanded(
-              flex: 3,
-              child: Stack(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: item.imageUrls.isNotEmpty
-                          ? Image.asset(
-                              item.imageUrls[0],
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stack) {
-                                return Center(
-                                  child: Icon(Icons.image_not_supported, color: Colors.grey[400]),
-                                );
-                              },
-                            )
-                          : Center(
-                              child: Icon(Icons.image_not_supported, color: Colors.grey[400]),
-                            ),
-                    ),
-                  ),
-                  // Condition badge
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _getConditionColor(item.condition),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        item.condition,
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ItemDetailsScreen(
+                imageUrls: item.imageUrls,
+                title: item.title,
+                price: item.price,
+                status: item.condition,
               ),
             ),
-            // Details
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image
+              Expanded(
+                flex: 3,
+                child: Stack(
                   children: [
-                    Text(
-                      item.title,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                        child: item.imageUrls.isNotEmpty
+                            ? Image.asset(
+                                item.imageUrls[0],
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stack) {
+                                  return Center(
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      color: Colors.grey[400],
+                                    ),
+                                  );
+                                },
+                              )
+                            : Center(
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                      ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.price,
+                    // Condition badge
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getConditionColor(item.condition),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          item.condition,
                           style: const TextStyle(
-                            color: Colors.green,
-                            fontSize: 16,
+                            color: Colors.white,
+                            fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Icon(Icons.location_on, size: 12, color: Colors.grey[600]),
-                            const SizedBox(width: 2),
-                            Expanded(
-                              child: Text(
-                                item.location,
-                                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                      ),
+                    ),
+                    // Heart/Favorite icon
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _listingsService.toggleFavoriteById(item.id);
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _listingsService.isFavorite(item.id)
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: _listingsService.isFavorite(item.id)
+                                ? Colors.red
+                                : Colors.grey,
+                            size: 18,
+                          ),
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              // Details
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        item.title,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.price,
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                size: 12,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 2),
+                              Expanded(
+                                child: Text(
+                                  item.location,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[600],
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

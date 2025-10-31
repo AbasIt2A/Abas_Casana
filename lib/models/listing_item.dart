@@ -11,6 +11,7 @@ class ListingItem {
   final String status;
   final int views;
   final int messages;
+  final bool isFavorite;
 
   ListingItem({
     required this.id,
@@ -24,12 +25,13 @@ class ListingItem {
     this.status = 'Active',
     this.views = 0,
     this.messages = 0,
+    this.isFavorite = false,
   });
 
   String get formattedDate {
     final now = DateTime.now();
     final difference = now.difference(postDate);
-    
+
     if (difference.inDays == 0) {
       return 'Posted today';
     } else if (difference.inDays == 1) {
