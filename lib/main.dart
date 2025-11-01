@@ -12,20 +12,21 @@ void main() async {
     // Initialize Supabase
     await Supabase.initialize(
       url: 'https://abesvjbwyaywhpdnnykq.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiZXN2amJ3eWF5d2hwZG5ueWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MzMyNDIsImV4cCI6MjA3NzQwOTI0Mn0.F9bWXCbEiOfdvkSoMzbGgz5-aueAK_uvVoDoYcwK0_Y',
+      anonKey:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiZXN2amJ3eWF5d2hwZG5ueWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MzMyNDIsImV4cCI6MjA3NzQwOTI0Mn0.F9bWXCbEiOfdvkSoMzbGgz5-aueAK_uvVoDoYcwK0_Y',
     );
     print('Supabase initialized successfully');
     runApp(const MyApp());
   } catch (e) {
     print('Error initializing Supabase: $e');
     // Show error widget if Supabase fails to initialize
-    runApp(MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Failed to initialize Supabase: $e'),
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(child: Text('Failed to initialize Supabase: $e')),
         ),
       ),
-    ));
+    );
   }
 }
 
@@ -60,7 +61,9 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, snapshot) {
         // Check connection state
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         // Check if user data exists (logged in)
         if (snapshot.hasData && snapshot.data?.session != null) {

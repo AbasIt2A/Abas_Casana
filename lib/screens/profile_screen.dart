@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'my_listings_screen.dart';
 import 'my_purchases_screen.dart';
 import 'edit_profile_screen.dart';
@@ -157,7 +158,7 @@ class ProfileScreen extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
+          colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
         ),
       ),
       child: Column(
@@ -171,12 +172,12 @@ class ProfileScreen extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => Navigator.of(context).pop(),
               ),
-              const Text(
+              Text(
                 'My Profile',
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               IconButton(
@@ -212,11 +213,11 @@ class ProfileScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.blue, width: 2),
+                        border: Border.all(color: const Color(0xFFFFB300), width: 2),
                       ),
                       child: const Icon(
                         Icons.camera_alt,
-                        color: Colors.blue,
+                        color: Color(0xFFFFB300),
                         size: 18,
                       ),
                     ),
@@ -227,18 +228,18 @@ class ProfileScreen extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Sarah Johnson',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
                     'sarah.johnson@email.com',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                    style: GoogleFonts.poppins(
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14,
                     ),
                   ),
@@ -255,9 +256,9 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildStatsRow() {
     return Row(
       children: [
-        _buildStatCard('12', 'Items Sold', Colors.purple.shade50),
+        _buildStatCard('12', 'Items Sold', const Color(0xFF3F51B5)),
         const SizedBox(width: 16),
-        _buildStatCard('8', 'Items Bought', Colors.green.shade50),
+        _buildStatCard('8', 'Items Bought', const Color(0xFFFFB300)),
       ],
     );
   }
@@ -267,24 +268,39 @@ class ProfileScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: backgroundColor,
+          gradient: LinearGradient(
+            colors: [backgroundColor, backgroundColor.withValues(alpha: 0.7)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: backgroundColor.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           children: [
             Text(
               count,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+              style: GoogleFonts.poppins(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -297,10 +313,10 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
       child: Text(
         title,
-        style: const TextStyle(
+        style: GoogleFonts.poppins(
           fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
+          fontWeight: FontWeight.w700,
+          color: const Color(0xFF3F51B5),
         ),
       ),
     );
@@ -316,52 +332,72 @@ class ProfileScreen extends StatelessWidget {
     Color textColor = Colors.black87,
     required VoidCallback onTap,
   }) {
-    return Card(
-      elevation: 0,
+    return Container(
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
+            gradient: LinearGradient(
+              colors: [
+                iconColor.withValues(alpha: 0.2),
+                iconColor.withValues(alpha: 0.1),
+              ],
+            ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: iconColor),
         ),
         title: Text(
           title,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
-            fontSize: 16,
+            fontSize: 15,
             color: textColor,
           ),
         ),
         subtitle: subtitle != null
-            ? Text(subtitle, style: const TextStyle(color: Colors.grey))
+            ? Text(
+                subtitle,
+                style: GoogleFonts.poppins(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                ),
+              )
             : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (trailingText != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: trailingColor?.withOpacity(0.1) ?? Colors.transparent,
+                  color: trailingColor?.withValues(alpha: 0.15) ?? Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   trailingText,
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     color: trailingColor ?? Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
                   ),
                 ),
               ),
             const SizedBox(width: 8),
-            Icon(Icons.arrow_forward_ios, color: Colors.grey[400], size: 18),
+            Icon(Icons.arrow_forward_ios, color: Colors.grey[400], size: 16),
           ],
         ),
         onTap: onTap,

@@ -68,7 +68,9 @@ class _MyPurchasesScreenState extends State<MyPurchasesScreen> {
             onPressed: () {},
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('Load More Items'),
           ),
@@ -103,7 +105,11 @@ class _MyPurchasesScreenState extends State<MyPurchasesScreen> {
                 color: Colors.green.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.shopping_bag, color: Colors.green, size: 28),
+              child: const Icon(
+                Icons.shopping_bag,
+                color: Colors.green,
+                size: 28,
+              ),
             ),
           ],
         ),
@@ -177,20 +183,36 @@ class _MyPurchasesScreenState extends State<MyPurchasesScreen> {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 4),
-                      Text(categoryDate, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text(
+                        categoryDate,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.green.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
                           'Purchased',
-                          style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],
@@ -212,17 +234,28 @@ class _MyPurchasesScreenState extends State<MyPurchasesScreen> {
                       backgroundImage: NetworkImage(sellerImageUrl),
                     ),
                     const SizedBox(width: 8),
-                    Text(sellerName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    Text(
+                      sellerName,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ],
                 ),
-                Text(price, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  price,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey[200],
                     foregroundColor: Colors.black,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: const Text('Acquired'),
                 ),

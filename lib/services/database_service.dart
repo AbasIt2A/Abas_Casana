@@ -35,17 +35,19 @@ class DatabaseService {
       final filePath = 'profile_pictures/$fileName';
 
       // Upload the file to Supabase Storage
-      await _supabase.storage.from('profile-pictures').upload(
-        filePath,
-        imageFile,
-        fileOptions: const FileOptions(upsert: true),
-      );
+      await _supabase.storage
+          .from('profile-pictures')
+          .upload(
+            filePath,
+            imageFile,
+            fileOptions: const FileOptions(upsert: true),
+          );
 
       // Get the public URL
       final String downloadUrl = _supabase.storage
           .from('profile-pictures')
           .getPublicUrl(filePath);
-      
+
       return downloadUrl;
     } catch (e) {
       print('Error uploading profile picture: $e');
@@ -61,7 +63,7 @@ class DatabaseService {
           .select()
           .eq('id', userId)
           .single();
-      
+
       return response as Map<String, dynamic>?;
     } catch (e) {
       print('Error getting user profile: $e');

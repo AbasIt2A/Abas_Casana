@@ -20,7 +20,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
   final _priceController = TextEditingController();
   final _locationController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
-  
+
   Condition? _selectedCondition;
   String? _selectedCategory;
   List<XFile> _selectedImages = [];
@@ -135,14 +135,9 @@ class _PostItemScreenState extends State<PostItemScreen> {
     return DropdownButtonFormField<String>(
       value: _selectedCategory,
       hint: const Text('Select category'),
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-      ),
+      decoration: const InputDecoration(border: OutlineInputBorder()),
       items: ['Phones', 'Laptops', 'Appliances', 'Accessories']
-          .map((label) => DropdownMenuItem(
-                value: label,
-                child: Text(label),
-              ))
+          .map((label) => DropdownMenuItem(value: label, child: Text(label)))
           .toList(),
       onChanged: (value) {
         setState(() {
@@ -216,9 +211,9 @@ class _PostItemScreenState extends State<PostItemScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
       }
     }
   }
@@ -366,8 +361,8 @@ class _PostItemScreenState extends State<PostItemScreen> {
       category: _selectedCategory!,
       condition: _getConditionString(),
       imageUrls: _selectedImages.map((file) => file.path).toList(),
-      price: _priceController.text.trim().isEmpty 
-          ? 'Free' 
+      price: _priceController.text.trim().isEmpty
+          ? 'Free'
           : '₱${_priceController.text.trim()}',
       location: _locationController.text.trim(),
       postDate: DateTime.now(),
@@ -390,7 +385,10 @@ class _PostItemScreenState extends State<PostItemScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: const Text('Post Item', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        child: const Text(
+          'Post Item',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

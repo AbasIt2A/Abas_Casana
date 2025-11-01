@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'chat_details_screen.dart'; // Corrected import
 
 class MessagesScreen extends StatelessWidget {
@@ -7,172 +8,232 @@ class MessagesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF3F51B5),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Messages',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
+            icon: const Icon(Icons.search, color: Colors.white),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.add, color: Colors.black),
+            icon: const Icon(Icons.add, color: Colors.white),
             onPressed: () {},
           ),
         ],
       ),
-      body: ListView(
+      body: Column(
         children: [
-          _buildSearchBar(),
-          _buildActiveConversations(context),
-          _buildRecentConversations(context),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 20.0),
+            child: Column(
+              children: [
+                _buildSearchBar(),
+                const SizedBox(height: 16),
+                _buildFilterTabs(),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                _buildRecentConversations(context),
+              ],
+            ),
+          ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {},
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.edit, color: Colors.white),
+        backgroundColor: const Color(0xFFFFB300),
+        icon: const Icon(Icons.add_comment, color: Colors.white),
+        label: Text(
+          'New',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: TextField(
+        style: GoogleFonts.poppins(fontSize: 14),
         decoration: InputDecoration(
           hintText: 'Search conversations...',
-          prefixIcon: const Icon(Icons.search),
-          filled: true,
-          fillColor: Colors.grey[200],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),
-            borderSide: BorderSide.none,
+          hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
+          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterTabs() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFFB300),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text(
+                    '3',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Unread',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF3F51B5),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildActiveConversations(BuildContext context) {
-    final activeUsers = [
-      {'name': 'John', 'avatarUrl': 'assets/images/john.jpg'},
-      {'name': 'Sarah', 'avatarUrl': 'assets/images/sarah.jpg'},
-      {'name': 'Mike', 'avatarUrl': 'https://i.pravatar.cc/150?img=3'},
-      {'name': 'Emma', 'avatarUrl': 'https://i.pravatar.cc/150?img=4'},
-      {'name': 'David', 'avatarUrl': 'https://i.pravatar.cc/150?img=5'},
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: SizedBox(
-        height: 100,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.only(left: 16.0),
-          itemCount: activeUsers.length,
-          itemBuilder: (context, index) {
-            final user = activeUsers[index];
-            return _buildActiveUserAvatar(
-              context: context,
-              imageUrl: user['avatarUrl']!,
-              name: user['name']!,
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActiveUserAvatar({
-    required BuildContext context,
-    required String imageUrl,
-    required String name,
-  }) {
-    final ImageProvider imageProvider;
-    if (imageUrl.startsWith('http')) {
-      imageProvider = NetworkImage(imageUrl);
-    } else {
-      imageProvider = AssetImage(imageUrl);
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(right: 16.0),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => ChatDetailsScreen(
-              name: name,
-              avatarUrl: imageUrl,
+        const SizedBox(width: 12),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(10),
             ),
-          ));
-        },
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.green,
-              child: CircleAvatar(
-                radius: 28,
-                backgroundImage: imageProvider,
+            child: Center(
+              child: Text(
+                'All Messages',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(name, style: const TextStyle(fontSize: 12)),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildRecentConversations(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Recent',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          _buildConversationTile(
-            context: context,
-            name: 'John Smith',
-            message: 'Thanks for the quick delivery!',
-            time: '2m',
-            avatarUrl: 'assets/images/john.jpg', // Using local asset
-            isOnline: true,
-            hasUnread: true,
-          ),
-          _buildConversationTile(
-            context: context,
-            name: 'Sarah Johnson',
-            message: 'Do you have any organic fertilizers available?',
-            time: '15m',
-            avatarUrl: 'assets/images/sarah.jpg', // Using local asset
-            isOnline: false,
-          ),
-          _buildConversationTile(
-            context: context,
-            name: 'Mike Wilson',
-            message: 'Perfect! I\'ll take 5 of those.',
-            time: '1h',
-            avatarUrl: 'https://i.pravatar.cc/150?img=3', // Using network image
-            isOnline: true,
-            unreadCount: 2,
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Inbox',
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF3F51B5),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.filter_list, size: 18),
+              label: Text(
+                'Filter',
+                style: GoogleFonts.poppins(fontSize: 13),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF3F51B5),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _buildConversationTile(
+          context: context,
+          name: 'John Smith',
+          message: 'Thanks for the quick delivery!',
+          time: '2m',
+          avatarUrl: 'assets/images/john.jpg',
+          isOnline: true,
+          hasUnread: true,
+        ),
+        _buildConversationTile(
+          context: context,
+          name: 'Sarah Johnson',
+          message: 'Do you have any organic fertilizers available?',
+          time: '15m',
+          avatarUrl: 'assets/images/sarah.jpg',
+          isOnline: false,
+        ),
+        _buildConversationTile(
+          context: context,
+          name: 'Mike Wilson',
+          message: 'Perfect! I\'ll take 5 of those.',
+          time: '1h',
+          avatarUrl: 'https://i.pravatar.cc/150?img=3',
+          isOnline: true,
+          unreadCount: 2,
+        ),
+      ],
     );
   }
 
@@ -195,33 +256,60 @@ class MessagesScreen extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        // Correctly navigates to ChatDetailsScreen
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => ChatDetailsScreen(
-            name: name,
-            avatarUrl: avatarUrl,
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) =>
+                ChatDetailsScreen(name: name, avatarUrl: avatarUrl),
           ),
-        ));
+        );
       },
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10.0),
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: hasUnread || unreadCount > 0
+                ? const Color(0xFFFFB300).withValues(alpha: 0.3)
+                : Colors.grey.shade200,
+            width: hasUnread || unreadCount > 0 ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Stack(
               children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundImage: imageProvider,
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFF3F51B5).withValues(alpha: 0.2),
+                      width: 2,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 26,
+                    backgroundImage: imageProvider,
+                  ),
                 ),
                 if (isOnline)
                   Positioned(
-                    bottom: 0,
-                    right: 0,
+                    bottom: 2,
+                    right: 2,
                     child: Container(
-                      height: 12,
-                      width: 12,
+                      height: 14,
+                      width: 14,
                       decoration: BoxDecoration(
-                        color: Colors.green,
+                        color: const Color(0xFF4CAF50),
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
@@ -229,49 +317,80 @@ class MessagesScreen extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    name,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        time,
+                        style: GoogleFonts.poppins(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    message,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: hasUnread || unreadCount > 0 ? Colors.black : Colors.grey,
-                      fontWeight: hasUnread || unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
-                    ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          message,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            color: hasUnread || unreadCount > 0
+                                ? Colors.black87
+                                : Colors.grey[600],
+                            fontWeight: hasUnread || unreadCount > 0
+                                ? FontWeight.w500
+                                : FontWeight.w400,
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                      if (hasUnread || unreadCount > 0)
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            unreadCount > 0 ? unreadCount.toString() : 'NEW',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(time, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                const SizedBox(height: 4),
-                if (hasUnread)
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                  ),
-                if (unreadCount > 0)
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
-                    child: Text(
-                      unreadCount.toString(),
-                      style: const TextStyle(color: Colors.white, fontSize: 10),
-                    ),
-                  ),
-              ],
             ),
           ],
         ),

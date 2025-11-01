@@ -36,16 +36,18 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         ),
         title: Row(
           children: [
-            CircleAvatar(
-              backgroundImage: NetworkImage(widget.avatarUrl),
-            ),
+            CircleAvatar(backgroundImage: NetworkImage(widget.avatarUrl)),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   widget.name,
-                  style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Text(
                   'Active 2 min ago',
@@ -76,7 +78,8 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                   time: '3:02 PM',
                 ),
                 _buildChatBubble(
-                  text: 'Deal! How about tomorrow at 2 PM? I can meet you at the mall.',
+                  text:
+                      'Deal! How about tomorrow at 2 PM? I can meet you at the mall.',
                   isMe: false,
                   time: '3:03 PM',
                 ),
@@ -129,7 +132,13 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
               color: Colors.green.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text('For Sale', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'For Sale',
+              style: TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -147,8 +156,12 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       ),
     );
   }
-  
-  Widget _buildChatBubble({required String text, required bool isMe, required String time}) {
+
+  Widget _buildChatBubble({
+    required String text,
+    required bool isMe,
+    required String time,
+  }) {
     final bubbleColor = isMe ? Colors.green : Colors.grey[200];
     final textColor = isMe ? Colors.white : Colors.black;
     final alignment = isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
@@ -157,7 +170,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       crossAxisAlignment: alignment,
       children: [
         Container(
-          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.7,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
           decoration: BoxDecoration(
             color: bubbleColor,
@@ -177,7 +192,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Container(
-          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.7,
+          ),
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
             color: Colors.green,
@@ -191,15 +208,27 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Westfield Mall', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  Text('Tomorrow 2:00 PM', style: TextStyle(color: Colors.white70)),
+                  Text(
+                    'Westfield Mall',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Tomorrow 2:00 PM',
+                    style: TextStyle(color: Colors.white70),
+                  ),
                 ],
               ),
             ],
           ),
         ),
         const SizedBox(height: 4),
-        const Text('3:05 PM', style: TextStyle(color: Colors.grey, fontSize: 12)),
+        const Text(
+          '3:05 PM',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+        ),
         const SizedBox(height: 16),
       ],
     );
@@ -215,7 +244,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             onPressed: () {},
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
             ),
             child: const Text('Make Offer'),
           ),
@@ -224,7 +255,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             onPressed: () {},
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
             ),
@@ -234,7 +267,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       ),
     );
   }
-  
+
   Widget _buildMessageComposer() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
@@ -244,7 +277,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       ),
       child: Row(
         children: [
-          IconButton(icon: const Icon(Icons.add, color: Colors.grey), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.grey),
+            onPressed: () {},
+          ),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -263,12 +299,21 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       ),
                     ),
                   ),
-                  IconButton(icon: const Icon(Icons.sentiment_satisfied_alt, color: Colors.grey), onPressed: () {}),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.sentiment_satisfied_alt,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {},
+                  ),
                 ],
               ),
             ),
           ),
-          IconButton(icon: const Icon(Icons.send, color: Colors.green), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.send, color: Colors.green),
+            onPressed: () {},
+          ),
         ],
       ),
     );

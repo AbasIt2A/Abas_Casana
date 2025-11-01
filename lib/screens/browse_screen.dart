@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'item_details_screen.dart';
 import '../services/listings_service.dart';
 
@@ -16,25 +17,25 @@ class _BrowseScreenState extends State<BrowseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF3F51B5),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Browse Market',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
             onPressed: () {},
           ),
           const Padding(
@@ -46,18 +47,36 @@ class _BrowseScreenState extends State<BrowseScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      body: Column(
         children: [
-          const SizedBox(height: 16),
-          _buildSearchBar(),
-          const SizedBox(height: 24),
-          _buildFilterAndLayoutButtons(),
-          const SizedBox(height: 24),
-          _buildTagFilters(),
-          const SizedBox(height: 24),
-          isGridView ? _buildGridItems() : _buildListItems(),
-          const SizedBox(height: 24),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 24.0),
+            child: Column(
+              children: [
+                _buildSearchBar(),
+                const SizedBox(height: 16),
+                _buildFilterAndLayoutButtons(),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                _buildTagFilters(),
+                const SizedBox(height: 20),
+                isGridView ? _buildGridItems() : _buildListItems(),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -65,20 +84,31 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.search, color: Colors.grey),
-          SizedBox(width: 8),
+          const Icon(Icons.search, color: Colors.grey),
+          const SizedBox(width: 12),
           Expanded(
             child: TextField(
+              style: GoogleFonts.poppins(fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Search electronics...',
+                hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
@@ -91,12 +121,14 @@ class _BrowseScreenState extends State<BrowseScreen> {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
+          child: ElevatedButton.icon(
             onPressed: () {},
-            icon: const Icon(Icons.filter_list, color: Colors.grey),
-            label: const Text('Filters', style: TextStyle(color: Colors.black)),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.grey.shade300),
+            icon: const Icon(Icons.filter_list, size: 20),
+            label: Text('Filters', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF3F51B5),
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -104,19 +136,24 @@ class _BrowseScreenState extends State<BrowseScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 4,
+              ),
+            ],
           ),
           child: Row(
             children: [
               IconButton(
                 icon: Icon(
                   Icons.grid_view,
-                  color: isGridView ? Colors.green : Colors.grey,
+                  color: isGridView ? const Color(0xFFFFB300) : Colors.grey,
                 ),
                 onPressed: () {
                   setState(() {
@@ -124,10 +161,11 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   });
                 },
               ),
+              Container(width: 1, height: 24, color: Colors.grey[300]),
               IconButton(
                 icon: Icon(
                   Icons.list,
-                  color: isGridView ? Colors.grey : Colors.green,
+                  color: isGridView ? Colors.grey : const Color(0xFFFFB300),
                 ),
                 onPressed: () {
                   setState(() {
@@ -170,16 +208,21 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   selectedFilter = selected ? tag : null;
                 });
               },
-              selectedColor: Colors.green.withOpacity(0.1),
-              backgroundColor: Colors.grey[200],
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.green : Colors.black87,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              selectedColor: const Color(0xFFFFB300),
+              backgroundColor: Colors.white,
+              labelStyle: GoogleFonts.poppins(
+                color: isSelected ? Colors.white : Colors.grey[700],
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 13,
               ),
-              side: BorderSide.none,
+              side: BorderSide(
+                color: isSelected ? const Color(0xFFFFB300) : Colors.grey.shade300,
+                width: 1,
+              ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
               ),
+              elevation: isSelected ? 2 : 0,
             ),
           );
         },
@@ -291,7 +334,13 @@ class _BrowseScreenState extends State<BrowseScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,7 +442,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
                     const SizedBox(height: 4),
                     Text(
                       description,
-                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                      style: GoogleFonts.poppins(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -401,10 +453,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   const SizedBox(height: 8),
                   Text(
                     price,
-                    style: const TextStyle(
-                      color: Colors.green,
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFFFFB300),
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   if (showViewButton) ...[
@@ -425,16 +477,20 @@ class _BrowseScreenState extends State<BrowseScreen> {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                          backgroundColor: const Color(0xFF3F51B5),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 8),
+                          elevation: 0,
                         ),
-                        child: const Text(
+                        child: Text(
                           'View',
-                          style: TextStyle(fontSize: 14),
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),

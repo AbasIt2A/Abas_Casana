@@ -1,5 +1,6 @@
 // lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'browse_screen.dart';
 import 'category_screen.dart';
 import 'item_details_screen.dart';
@@ -59,24 +60,22 @@ class _HomeScreenState extends State<HomeScreen> {
     // AuthService not needed in this AppBar since sign-out button removed
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF3F51B5),
         elevation: 0,
         automaticallyImplyLeading: false,
         leadingWidth: 0,
         title: Row(
           children: [
-            // Make the logo larger for better visibility
-            Image.asset('assets/images/logo.png', height: 56),
+            Image.asset('assets/images/logo.png', height: 50),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
             onPressed: () {},
           ),
-          // Sign out/back icon removed as requested (profile avatar remains)
           const Padding(
             padding: EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
@@ -88,54 +87,88 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       // ... (rest of the body and bottomNavigationBar remain the same)
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              _buildSearchBar(),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Categories'),
-              const SizedBox(height: 16),
-              _buildCategoriesRow(),
-              const SizedBox(height: 24),
-              _buildActionButtons(),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Featured Items'),
-              const SizedBox(height: 16),
-              _buildFeaturedItemCard(
-                imageUrl: 'assets/images/gadget1.jpg',
-                title: 'iPhone 12 - Cracked Screen',
-                description: 'Screen broken, otherwise works fine',
-                price: '\$85',
-                status: 'Broken',
-                statusColor: Colors.orange,
-                time: '2h ago',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
               ),
-              const SizedBox(height: 16),
-              _buildFeaturedItemCard(
-                imageUrl: 'assets/images/gadget2.jpg',
-                title: 'MacBook Pro 2018',
-                description: 'Water damage, good for parts',
-                price: '\$150',
-                status: 'For Parts',
-                statusColor: Colors.blue,
-                time: '5h ago',
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Find Your Next Gadget',
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Buy, sell, and discover electronics',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSearchBar(),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              _buildFeaturedItemCard(
-                imageUrl: 'assets/images/gadget3.jpg',
-                title: 'Xbox Controller',
-                description: 'Slightly worn but fully functional',
-                price: '\$25',
-                status: 'Working',
-                statusColor: Colors.green,
-                time: '1d ago',
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionTitle('Categories'),
+                  const SizedBox(height: 16),
+                  _buildCategoriesRow(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Featured Items'),
+                      _buildFeaturedItemCard(
+                    imageUrl: 'assets/images/gadget1.jpg',
+                    title: 'iPhone 12 - Cracked Screen',
+                    description: 'Screen broken, otherwise works fine',
+                    price: '\$85',
+                    status: 'Broken',
+                    statusColor: Colors.orange,
+                    time: '2h ago',
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFeaturedItemCard(
+                    imageUrl: 'assets/images/gadget2.jpg',
+                    title: 'MacBook Pro 2018',
+                    description: 'Water damage, good for parts',
+                    price: '\$150',
+                    status: 'For Parts',
+                    statusColor: const Color(0xFF3F51B5),
+                    time: '5h ago',
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFeaturedItemCard(
+                    imageUrl: 'assets/images/gadget3.jpg',
+                    title: 'Xbox Controller',
+                    description: 'Slightly worn but fully functional',
+                    price: '\$25',
+                    status: 'Working',
+                    statusColor: Colors.green,
+                    time: '1d ago',
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              const SizedBox(height: 24),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -156,13 +189,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.green,
+        selectedItemColor: const Color(0xFFFFB300),
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
         backgroundColor: Colors.white,
-        elevation: 2,
+        elevation: 8,
       ),
     );
   }
@@ -173,31 +206,42 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           const Icon(Icons.search, color: Colors.grey),
-          const SizedBox(width: 8),
-          const Expanded(
+          const SizedBox(width: 12),
+          Expanded(
             child: TextField(
+              style: GoogleFonts.poppins(fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Search electronics...',
+                hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
           Container(
-            height: 35,
-            width: 35,
+            height: 36,
+            width: 36,
             decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(8),
+              color: const Color(0xFFFFB300),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.filter_list, color: Colors.white),
+            child: const Icon(Icons.filter_list, color: Colors.white, size: 20),
           ),
         ],
       ),
@@ -207,7 +251,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      style: GoogleFonts.poppins(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: const Color(0xFF3F51B5),
+      ),
     );
   }
 
@@ -218,26 +266,26 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildCategoryItem(
           Icons.phone_iphone,
           'Phones',
-          Colors.blue.withOpacity(0.1),
-          Colors.blue,
+          const Color(0xFF3F51B5).withValues(alpha: 0.1),
+          const Color(0xFF3F51B5),
         ),
         _buildCategoryItem(
           Icons.laptop,
           'Laptops',
-          Colors.green.withOpacity(0.1),
-          Colors.green,
+          const Color(0xFFFFB300).withValues(alpha: 0.15),
+          const Color(0xFFFFB300),
         ),
         _buildCategoryItem(
           Icons.blender,
           'Appliances',
-          Colors.purple.withOpacity(0.1),
+          Colors.purple.withValues(alpha: 0.1),
           Colors.purple,
         ),
         _buildCategoryItem(
           Icons.headphones,
           'Accessories',
-          Colors.orange.withOpacity(0.1),
-          Colors.orange,
+          Colors.teal.withValues(alpha: 0.1),
+          Colors.teal,
         ),
       ],
     );
@@ -266,59 +314,30 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: backgroundColor,
                 borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: iconColor.withValues(alpha: 0.3), width: 1.5),
               ),
-              child: Icon(icon, size: 30, color: iconColor),
+              child: Icon(icon, size: 28, color: iconColor),
             ),
             const SizedBox(height: 8),
-            Text(label, style: const TextStyle(color: Colors.black54)),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                color: Colors.grey[700],
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () async {
-              final newItem = await Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const PostItemScreen()),
-              );
-              if (newItem != null && newItem is ListingItem && mounted) {
-                ListingsService().addListing(newItem);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Item posted successfully! View it in My Listings.',
-                    ),
-                    backgroundColor: Colors.green,
-                    duration: Duration(seconds: 3),
-                  ),
-                );
-              }
-            },
-            icon: const Icon(Icons.add_circle),
-            label: const Text('Sell Item'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              textStyle: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildFeaturedItemCard({
     required String imageUrl,
@@ -348,7 +367,13 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -456,15 +481,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      style: GoogleFonts.poppins(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       description,
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      style: GoogleFonts.poppins(
+                        color: Colors.grey[600],
+                        fontSize: 13,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -472,10 +501,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           price,
-                          style: const TextStyle(
-                            color: Colors.green,
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFFFFB300),
                             fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         Row(
@@ -488,9 +517,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(width: 4),
                             Text(
                               time,
-                              style: const TextStyle(
+                              style: GoogleFonts.poppins(
                                 color: Colors.grey,
-                                fontSize: 14,
+                                fontSize: 13,
                               ),
                             ),
                           ],

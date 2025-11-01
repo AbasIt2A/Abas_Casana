@@ -41,9 +41,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       print('Error loading profile: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error loading profile')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Error loading profile')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -51,7 +51,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickImage() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+      );
       if (image != null) {
         setState(() {
           _newProfileImage = File(image.path);
@@ -59,9 +61,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       print('Error picking image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error selecting image')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Error selecting image')));
     }
   }
 
@@ -103,9 +105,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       print('Error updating profile: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error updating profile')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Error updating profile')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -125,10 +127,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         title: const Text('Edit Profile'),
         actions: [
           if (!_isLoading)
-            TextButton(
-              onPressed: _updateProfile,
-              child: const Text('Save'),
-            ),
+            TextButton(onPressed: _updateProfile, child: const Text('Save')),
         ],
       ),
       body: _isLoading
@@ -178,18 +177,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       fit: BoxFit.cover,
                     )
                   : _currentImageUrl != null
-                      ? DecorationImage(
-                          image: NetworkImage(_currentImageUrl!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
+                  ? DecorationImage(
+                      image: NetworkImage(_currentImageUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
             child: (_newProfileImage == null && _currentImageUrl == null)
-                ? const Icon(
-                    Icons.person_outline,
-                    size: 60,
-                    color: Colors.grey,
-                  )
+                ? const Icon(Icons.person_outline, size: 60, color: Colors.grey)
                 : null,
           ),
           Positioned(
@@ -227,10 +222,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -258,16 +250,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Verification email sent! Please check your inbox.'),
+                content: Text(
+                  'Verification email sent! Please check your inbox.',
+                ),
               ),
             );
           }
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Error sending verification email'),
-              ),
+              const SnackBar(content: Text('Error sending verification email')),
             );
           }
         }
@@ -278,9 +270,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         minimumSize: const Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

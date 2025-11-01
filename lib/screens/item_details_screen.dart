@@ -30,7 +30,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final int totalImages = widget.imageUrls.isNotEmpty ? widget.imageUrls.length : 1;
+    final int totalImages = widget.imageUrls.isNotEmpty
+        ? widget.imageUrls.length
+        : 1;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -71,12 +73,19 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   const SizedBox(height: 16),
                   Text(
                     widget.title,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     'iPhone 12 Pro 128GB in Space Gray. Screen is cracked but everything else works perfectly. Battery health at 85%. Comes with original charger and box. Perfect for parts or repair.',
-                    style: TextStyle(color: Colors.black54, height: 1.5, fontSize: 15),
+                    style: TextStyle(
+                      color: Colors.black54,
+                      height: 1.5,
+                      fontSize: 15,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   _buildDetailsSection(),
@@ -113,7 +122,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                 imageUrl,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.image_not_supported, size: 100, color: Colors.grey);
+                  return const Icon(
+                    Icons.image_not_supported,
+                    size: 100,
+                    color: Colors.grey,
+                  );
                 },
               );
             },
@@ -198,7 +211,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text(
+          'Details',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(16),
@@ -229,7 +245,14 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(color: Colors.grey, fontSize: 15)),
-          Text(value, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 15)),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
+          ),
         ],
       ),
     );
@@ -239,7 +262,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Seller Information', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text(
+          'Seller Information',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(16),
@@ -258,8 +284,17 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Mark Santos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text('Quezon City, Metro Manila', style: TextStyle(color: Colors.grey)),
+                    Text(
+                      'Mark Santos',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      'Quezon City, Metro Manila',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                     Row(
                       children: [
                         Icon(Icons.star, color: Colors.amber, size: 16),
@@ -268,16 +303,16 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                         Icon(Icons.star, color: Colors.amber, size: 16),
                         Icon(Icons.star_half, color: Colors.amber, size: 16),
                         SizedBox(width: 4),
-                        Text('4.8 (127 reviews)', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text(
+                          '4.8 (127 reviews)',
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
                       ],
                     ),
                   ],
                 ),
               ),
-              TextButton(
-                onPressed: () {},
-                child: const Text('View Profile'),
-              ),
+              TextButton(onPressed: () {}, child: const Text('View Profile')),
             ],
           ),
         ),
@@ -291,7 +326,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       decoration: const BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2)),
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          ),
         ],
         border: Border(top: BorderSide(color: Colors.black12, width: 0.5)),
       ),
@@ -304,7 +343,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               label: const Text('Message'),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
@@ -317,11 +358,16 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: Text(
                 'Buy Now - ₱${widget.price}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ),
           ),
