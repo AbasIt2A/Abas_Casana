@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/auth_services.dart';
 import '../services/database_service.dart';
@@ -123,38 +124,99 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Edit Profile',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           if (!_isLoading)
-            TextButton(onPressed: _updateProfile, child: const Text('Save')),
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              child: TextButton.icon(
+                onPressed: _updateProfile,
+                icon: const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                label: Text(
+                  'Save',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFB300).withValues(alpha: 0.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3F51B5)),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Updating profile...',
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   _buildProfilePicture(),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 36),
                   _buildTextField(
                     controller: _fullNameController,
                     label: 'Full Name',
                     hint: 'Enter your full name',
+                    icon: Icons.person_outline,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   _buildTextField(
                     controller: _phoneController,
                     label: 'Phone Number',
                     hint: 'Enter your phone number',
                     keyboardType: TextInputType.phone,
+                    icon: Icons.phone_outlined,
                   ),
                   if (!_authService.isEmailVerified()) ...[
                     const SizedBox(height: 32),
                     _buildVerifyEmailButton(),
                   ],
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -166,11 +228,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: Stack(
         children: [
           Container(
-            width: 120,
-            height: 120,
+            width: 140,
+            height: 140,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.grey[200],
+              gradient: LinearGradient(
+                colors: (_newProfileImage == null && _currentImageUrl == null)
+                    ? [Colors.grey.shade200, Colors.grey.shade300]
+                    : [Colors.transparent, Colors.transparent],
+              ),
+              border: Border.all(
+                color: const Color(0xFFFFB300),
+                width: 4,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF3F51B5).withValues(alpha: 0.2),
+                  blurRadius: 25,
+                  offset: const Offset(0, 8),
+                ),
+              ],
               image: _newProfileImage != null
                   ? DecorationImage(
                       image: FileImage(_newProfileImage!),
@@ -184,24 +261,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   : null,
             ),
             child: (_newProfileImage == null && _currentImageUrl == null)
-                ? const Icon(Icons.person_outline, size: 60, color: Colors.grey)
+                ? Icon(Icons.person_outline, size: 70, color: Colors.grey[400])
                 : null,
           ),
           Positioned(
-            bottom: 0,
-            right: 0,
+            bottom: 4,
+            right: 4,
             child: GestureDetector(
               onTap: _pickImage,
               child: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
+                  ),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFFB300).withValues(alpha: 0.4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: const Icon(
                   Icons.camera_alt,
                   color: Colors.white,
-                  size: 20,
+                  size: 22,
                 ),
               ),
             ),
@@ -215,26 +301,71 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required TextEditingController controller,
     required String label,
     required String hint,
+    required IconData icon,
     TextInputType keyboardType = TextInputType.text,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF3F51B5),
+            ),
+          ),
         ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          decoration: InputDecoration(
-            hintText: hint,
-            filled: true,
-            fillColor: Colors.grey[100],
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w500),
+            decoration: InputDecoration(
+              prefixIcon: Container(
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF3F51B5).withValues(alpha: 0.1),
+                      const Color(0xFFFFB300).withValues(alpha: 0.05),
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
+                ),
+                child: Icon(icon, color: const Color(0xFF3F51B5), size: 22),
+              ),
+              hintText: hint,
+              hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 14),
+              filled: true,
+              fillColor: Colors.white,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFF3F51B5), width: 2),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 18,
+                horizontal: 12,
+              ),
             ),
           ),
         ),
@@ -243,34 +374,70 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildVerifyEmailButton() {
-    return ElevatedButton.icon(
-      onPressed: () async {
-        try {
-          await _authService.sendEmailVerification();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Verification email sent! Please check your inbox.',
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ElevatedButton.icon(
+        onPressed: () async {
+          try {
+            await _authService.sendEmailVerification();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Verification email sent! Please check your inbox.',
+                    style: GoogleFonts.poppins(),
+                  ),
+                  backgroundColor: const Color(0xFF4CAF50),
                 ),
-              ),
-            );
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Error sending verification email',
+                    style: GoogleFonts.poppins(),
+                  ),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
+            }
           }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Error sending verification email')),
-            );
-          }
-        }
-      },
-      icon: const Icon(Icons.email),
-      label: const Text('Verify Email'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        },
+        icon: const Icon(Icons.mark_email_read, size: 22),
+        label: Text(
+          'Verify Email Address',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.3,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
+          minimumSize: const Size(double.infinity, 54),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: EdgeInsets.zero,
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/listing_item.dart';
 import '../services/listings_service.dart';
 import 'item_details_screen.dart';
@@ -26,61 +27,269 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
+      backgroundColor: Colors.grey[50],
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 200,
+            floating: false,
+            pinned: true,
+            flexibleSpace: LayoutBuilder(
+              builder: (context, constraints) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF3F51B5), Color(0xFF5C6BC0), Color(0xFF303F9F)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: FlexibleSpaceBar(
+                    title: Text(
+                      widget.category,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
+                    ),
+                    background: Stack(
+                      clipBehavior: Clip.hardEdge,
+                      children: [
+                        // Decorative circles
+                        Positioned(
+                          top: -60,
+                          right: -40,
+                          child: Container(
+                            width: 150,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: -30,
+                          left: -50,
+                          child: Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFFFFB300).withValues(alpha: 0.15),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: -20,
+                          top: -20,
+                          child: Icon(
+                            widget.categoryIcon,
+                            size: 180,
+                            color: Colors.white.withValues(alpha: 0.08),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 65,
+                          left: 20,
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFFFB300).withValues(alpha: 0.5),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              widget.categoryIcon,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            leading: Container(
+              margin: const EdgeInsets.only(left: 8, top: 8),
               decoration: BoxDecoration(
-                color: widget.categoryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
               ),
-              child: Icon(
-                widget.categoryIcon,
-                color: widget.categoryColor,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              widget.category,
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ),
-          ],
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.sort, color: Colors.black),
-            onSelected: (value) {
-              setState(() {
-                _sortBy = value;
-              });
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'Recent', child: Text('Most Recent')),
-              const PopupMenuItem(
-                value: 'Price Low-High',
-                child: Text('Price: Low to High'),
-              ),
-              const PopupMenuItem(
-                value: 'Price High-Low',
-                child: Text('Price: High to Low'),
+            actions: [
+              Container(
+                margin: const EdgeInsets.only(right: 12, top: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: PopupMenuButton<String>(
+                  icon: const Icon(Icons.tune, color: Colors.white, size: 22),
+                  onSelected: (value) {
+                    setState(() {
+                      _sortBy = value;
+                    });
+                  },
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'Recent',
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF3F51B5), Color(0xFF5C6BC0)],
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.access_time, 
+                              size: 18, color: Colors.white),
+                          ),
+                          const SizedBox(width: 14),
+                          Text('Most Recent', style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                          )),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(height: 1),
+                    PopupMenuItem(
+                      value: 'Price Low-High',
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.arrow_upward, 
+                              size: 18, color: Colors.white),
+                          ),
+                          const SizedBox(width: 14),
+                          Text('Price: Low to High', style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                          )),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(height: 1),
+                    PopupMenuItem(
+                      value: 'Price High-Low',
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.arrow_downward, 
+                              size: 18, color: Colors.white),
+                          ),
+                          const SizedBox(width: 14),
+                          Text('Price: High to Low', style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                          )),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 16.0),
+              child: _buildSortBadge(),
+            ),
+          ),
+          _buildProductList(),
         ],
       ),
-      body: _buildProductList(),
+    );
+  }
+
+  Widget _buildSortBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFFB300).withValues(alpha: 0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.swap_vert_rounded, 
+              color: Colors.white, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            'Sorted by: $_sortBy',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -97,22 +306,42 @@ class _CategoryScreenState extends State<CategoryScreen> {
     final allItems = [...userListings, ...sampleData];
 
     if (allItems.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(widget.categoryIcon, size: 80, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text(
-              'No ${widget.category} available',
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Be the first to list an item!',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-            ),
-          ],
+      return SliverFillRemaining(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3F51B5).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  widget.categoryIcon,
+                  size: 80,
+                  color: const Color(0xFF3F51B5).withValues(alpha: 0.3),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'No ${widget.category} available',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Be the first to list an item!',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -120,19 +349,23 @@ class _CategoryScreenState extends State<CategoryScreen> {
     // Apply sorting
     _sortItems(allItems);
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.68,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final item = allItems[index];
+            return _buildProductCard(item);
+          },
+          childCount: allItems.length,
+        ),
       ),
-      itemCount: allItems.length,
-      itemBuilder: (context, index) {
-        final item = allItems[index];
-        return _buildProductCard(item);
-      },
     );
   }
 
@@ -290,14 +523,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFF3F51B5).withValues(alpha: 0.15),
+              width: 2,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+                color: const Color(0xFF3F51B5).withValues(alpha: 0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -314,12 +549,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
                         borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
+                          top: Radius.circular(20),
                         ),
                       ),
                       child: ClipRRect(
                         borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
+                          top: Radius.circular(20),
                         ),
                         child: item.imageUrls.isNotEmpty
                             ? Image.asset(
@@ -328,47 +563,81 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                 errorBuilder: (context, error, stack) {
                                   return Center(
                                     child: Icon(
-                                      Icons.image_not_supported,
+                                      Icons.image_not_supported_outlined,
                                       color: Colors.grey[400],
+                                      size: 50,
                                     ),
                                   );
                                 },
                               )
                             : Center(
                                 child: Icon(
-                                  Icons.image_not_supported,
+                                  Icons.image_not_supported_outlined,
                                   color: Colors.grey[400],
+                                  size: 50,
                                 ),
                               ),
                       ),
                     ),
+                    // Gradient overlay to cover any text in images
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.7),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                     // Condition badge
                     Positioned(
-                      top: 8,
-                      left: 8,
+                      top: 12,
+                      left: 12,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: 12,
+                          vertical: 7,
                         ),
                         decoration: BoxDecoration(
-                          color: _getConditionColor(item.condition),
-                          borderRadius: BorderRadius.circular(8),
+                          gradient: LinearGradient(
+                            colors: _getConditionGradient(item.condition),
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _getConditionColor(item.condition).withValues(alpha: 0.5),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
                         child: Text(
                           item.condition,
-                          style: const TextStyle(
+                          style: GoogleFonts.poppins(
                             color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
                     ),
                     // Heart/Favorite icon
                     Positioned(
-                      top: 8,
-                      right: 8,
+                      top: 12,
+                      right: 12,
                       child: GestureDetector(
                         onTap: () {
                           setState(() {
@@ -376,19 +645,26 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(7),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white,
                             shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
                           child: Icon(
                             _listingsService.isFavorite(item.id)
                                 ? Icons.favorite
                                 : Icons.favorite_border,
                             color: _listingsService.isFavorite(item.id)
-                                ? Colors.red
-                                : Colors.grey,
-                            size: 18,
+                                ? const Color(0xFFFF5252)
+                                : Colors.grey[600],
+                            size: 19,
                           ),
                         ),
                       ),
@@ -400,46 +676,78 @@ class _CategoryScreenState extends State<CategoryScreen> {
               Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(14.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         item.title,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                          height: 1.3,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 6),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            item.price,
-                            style: const TextStyle(
-                              color: Colors.green,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFFFB300).withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              item.price,
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 8),
                           Row(
                             children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 12,
-                                color: Colors.grey[600],
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF3F51B5), Color(0xFF5C6BC0)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Icon(
+                                  Icons.location_on,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
                               ),
-                              const SizedBox(width: 2),
+                              const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   item.location,
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     color: Colors.grey[600],
+                                    fontWeight: FontWeight.w600,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -462,14 +770,28 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Color _getConditionColor(String condition) {
     switch (condition.toLowerCase()) {
       case 'working':
-        return Colors.green;
+        return const Color(0xFF4CAF50);
       case 'needs repair':
       case 'broken':
-        return Colors.orange;
+        return const Color(0xFFFF9800);
       case 'for parts':
-        return Colors.blue;
+        return const Color(0xFF3F51B5);
       default:
         return Colors.grey;
+    }
+  }
+
+  List<Color> _getConditionGradient(String condition) {
+    switch (condition.toLowerCase()) {
+      case 'working':
+        return [const Color(0xFF4CAF50), const Color(0xFF45A049)];
+      case 'needs repair':
+      case 'broken':
+        return [const Color(0xFFFF9800), const Color(0xFFF57C00)];
+      case 'for parts':
+        return [const Color(0xFF3F51B5), const Color(0xFF303F9F)];
+      default:
+        return [Colors.grey, Colors.grey[700]!];
     }
   }
 }

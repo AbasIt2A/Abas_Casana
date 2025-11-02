@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ItemDetailsScreen extends StatefulWidget {
   final List<String> imageUrls;
@@ -35,25 +36,36 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         : 1;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Item Details',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.favorite_border, color: Colors.black),
+            icon: const Icon(Icons.favorite_border, color: Colors.white),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.share_outlined, color: Colors.black),
+            icon: const Icon(Icons.share_outlined, color: Colors.white),
             onPressed: () {},
           ),
         ],
@@ -70,21 +82,22 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildPriceAndCondition(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     widget.title,
-                    style: const TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  const SizedBox(height: 12),
+                  Text(
                     'iPhone 12 Pro 128GB in Space Gray. Screen is cracked but everything else works perfectly. Battery health at 85%. Comes with original charger and box. Perfect for parts or repair.',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       color: Colors.black54,
-                      height: 1.5,
-                      fontSize: 15,
+                      height: 1.6,
+                      fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -102,8 +115,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   }
 
   Widget _buildImageCarousel(int totalImages) {
-    return SizedBox(
-      height: 300,
+    return Container(
+      height: 320,
+      color: Colors.white,
       child: Stack(
         children: [
           PageView.builder(
@@ -135,14 +149,27 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             top: 10,
             right: 16,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(12),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Text(
                 '${_currentPage + 1}/$totalImages',
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -152,58 +179,102 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   }
 
   Widget _buildPageIndicator(int totalImages) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(totalImages, (index) {
-        return Container(
-          width: 8,
-          height: 8,
-          margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _currentPage == index ? Colors.green : Colors.grey.shade300,
-          ),
-        );
-      }),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      color: Colors.white,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(totalImages, (index) {
+          return Container(
+            width: _currentPage == index ? 24 : 8,
+            height: 8,
+            margin: const EdgeInsets.symmetric(horizontal: 3.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              gradient: _currentPage == index
+                  ? const LinearGradient(
+                      colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
+                    )
+                  : null,
+              color: _currentPage == index ? null : Colors.grey.shade300,
+            ),
+          );
+        }),
+      ),
     );
   }
 
   Widget _buildPriceAndCondition() {
-    return Row(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '₱${widget.price}',
-              style: const TextStyle(
-                fontSize: 28,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '₱${widget.price}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF3F51B5),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.local_offer, size: 14, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Negotiable',
+                      style: GoogleFonts.poppins(
+                        color: Colors.grey,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFB300).withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Text(
+              widget.status,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                fontSize: 13,
               ),
             ),
-            const Text(
-              'Negotiable',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-          ],
-        ),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.orange.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
           ),
-          child: Text(
-            widget.status,
-            style: const TextStyle(
-              color: Colors.orange,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -211,25 +282,36 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Details',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          'Specifications',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF3F51B5),
+          ),
         ),
         const SizedBox(height: 16),
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Column(
             children: [
               _buildDetailRow('Brand', 'Apple'),
-              const Divider(),
+              const Divider(height: 24),
               _buildDetailRow('Model', 'iPhone 12 Pro'),
-              const Divider(),
+              const Divider(height: 24),
               _buildDetailRow('Storage', '128GB'),
-              const Divider(),
+              const Divider(height: 24),
               _buildDetailRow('Color', 'Space Gray'),
             ],
           ),
@@ -239,22 +321,25 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   }
 
   static Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 15)),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: Colors.grey[600],
+            fontSize: 14,
           ),
-        ],
-      ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
+        ),
+      ],
     );
   }
 
@@ -262,57 +347,108 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Seller Information',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF3F51B5),
+          ),
         ),
         const SizedBox(height: 16),
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: const Color(0xFF3F51B5).withValues(alpha: 0.2),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Row(
             children: [
-              const CircleAvatar(
-                radius: 25,
-                backgroundImage: AssetImage('assets/images/profile.png'),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFFFFB300),
+                    width: 3,
+                  ),
+                ),
+                child: const CircleAvatar(
+                  radius: 28,
+                  backgroundImage: AssetImage('assets/images/profile.png'),
+                ),
               ),
-              const SizedBox(width: 12),
-              const Expanded(
+              const SizedBox(width: 14),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Mark Santos',
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
+                        color: Colors.black87,
                       ),
                     ),
-                    Text(
-                      'Quezon City, Metro Manila',
-                      style: TextStyle(color: Colors.grey),
-                    ),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        Icon(Icons.star_half, color: Colors.amber, size: 16),
-                        SizedBox(width: 4),
+                        const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            'Quezon City, Metro Manila',
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Color(0xFFFFB300), size: 16),
+                        const Icon(Icons.star, color: Color(0xFFFFB300), size: 16),
+                        const Icon(Icons.star, color: Color(0xFFFFB300), size: 16),
+                        const Icon(Icons.star, color: Color(0xFFFFB300), size: 16),
+                        const Icon(Icons.star_half, color: Color(0xFFFFB300), size: 16),
+                        const SizedBox(width: 6),
                         Text(
-                          '4.8 (127 reviews)',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                          '4.8 (127)',
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              TextButton(onPressed: () {}, child: const Text('View Profile')),
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF3F51B5),
+                ),
+                child: Text(
+                  'View',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                ),
+              ),
             ],
           ),
         ),
@@ -323,48 +459,53 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   Widget _buildBottomActionBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10,
-            offset: Offset(0, -2),
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 15,
+            offset: const Offset(0, -4),
           ),
         ],
-        border: Border(top: BorderSide(color: Colors.black12, width: 0.5)),
       ),
       child: Row(
         children: [
           Expanded(
             child: OutlinedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.message),
-              label: const Text('Message'),
+              icon: const Icon(Icons.chat_bubble_outline, size: 20),
+              label: Text(
+                'Message',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                foregroundColor: const Color(0xFF3F51B5),
+                side: const BorderSide(color: Color(0xFF3F51B5), width: 2),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             flex: 2,
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 0,
+                backgroundColor: const Color(0xFFFFB300),
+                foregroundColor: Colors.white,
               ),
               child: Text(
                 'Buy Now - ₱${widget.price}',
-                style: const TextStyle(
+                style: GoogleFonts.poppins(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
