@@ -382,9 +382,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFFFFB300), width: 3),
                 ),
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   radius: 28,
-                  backgroundImage: AssetImage('assets/images/profile.png'),
+                  backgroundImage: widget.sellerAvatar != null
+                      ? AssetImage(widget.sellerAvatar!)
+                      : const AssetImage('assets/images/profile.png'),
                 ),
               ),
               const SizedBox(width: 14),
@@ -393,7 +395,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mark Santos',
+                      widget.sellerName ?? 'Mark Santos',
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -497,8 +499,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           Expanded(
             child: OutlinedButton.icon(
               onPressed: () {
-                // Get seller name from widget or use default
-                final sellerName = widget.sellerName ?? 'John Smith';
+                // Use the seller name from widget, fallback to 'Mark Santos'
+                final sellerName = widget.sellerName ?? 'Mark Santos';
                 final sellerAvatar =
                     widget.sellerAvatar ?? 'assets/images/profile.png';
 

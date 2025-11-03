@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'services/auth_services.dart';
+import 'services/listings_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 
@@ -16,14 +17,19 @@ void main() async {
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiZXN2amJ3eWF5d2hwZG5ueWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4MzMyNDIsImV4cCI6MjA3NzQwOTI0Mn0.F9bWXCbEiOfdvkSoMzbGgz5-aueAK_uvVoDoYcwK0_Y',
     );
     print('Supabase initialized successfully');
+    
+    // Initialize ListingsService to load user data
+    await ListingsService().initialize();
+    print('ListingsService initialized');
+    
     runApp(const MyApp());
   } catch (e) {
-    print('Error initializing Supabase: $e');
-    // Show error widget if Supabase fails to initialize
+    print('Error initializing app: $e');
+    // Show error widget if initialization fails
     runApp(
       MaterialApp(
         home: Scaffold(
-          body: Center(child: Text('Failed to initialize Supabase: $e')),
+          body: Center(child: Text('Failed to initialize app: $e')),
         ),
       ),
     );
@@ -49,9 +55,14 @@ class MyApp extends StatelessWidget {
 }
 
 // AuthWrapper listens to auth state and shows Login or Home screen
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     final AuthService authService = AuthService();
@@ -68,6 +79,8 @@ class AuthWrapper extends StatelessWidget {
         // Check if user data exists (logged in)
         if (snapshot.hasData && snapshot.data?.session != null) {
           print("User is logged in: ${snapshot.data?.session?.user.id}");
+          // Initialize listings service for the logged-in user
+          ListingsService().initialize();
           return const HomeScreen(); // Show Home screen if logged in
         }
         // User is logged out

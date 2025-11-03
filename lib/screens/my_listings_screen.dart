@@ -59,18 +59,18 @@ class _MyListingsScreenState extends State<MyListingsScreen>
               color: Colors.green,
             ),
             tabs: [
-              Tab(text: 'All (${_listingsService.totalCount + 4})'),
+              Tab(text: 'All (${_listingsService.totalCount})'),
               Tab(
                 text:
-                    'Active (${_listingsService.getCountByStatus('Active') + 2})',
+                    'Active (${_listingsService.getCountByStatus('Active')})',
               ),
               Tab(
-                text: 'Sold (${_listingsService.getCountByStatus('Sold') + 1})',
+                text: 'Sold (${_listingsService.getCountByStatus('Sold')})',
               ),
               Tab(text: 'Wishlist (${_listingsService.favoriteCount})'),
               Tab(
                 text:
-                    'Hidden (${_listingsService.getCountByStatus('Hidden') + 1})',
+                    'Hidden (${_listingsService.getCountByStatus('Hidden')})',
               ),
             ],
           ),
@@ -287,56 +287,6 @@ class _MyListingsScreenState extends State<MyListingsScreen>
           );
         }
       }
-    }
-
-    // Add sample data for demonstration
-    if (filter == null || filter == 'Active') {
-      listingCards.add(
-        _buildListingCard(
-          imageUrl: 'assets/images/gadget1.jpg',
-          title: 'iPhone 12 - Cracked Screen',
-          postDate: 'Posted 2 days ago',
-          price: '₱85',
-          views: '3 views • 1 message',
-          status: 'Active',
-        ),
-      );
-      listingCards.add(
-        _buildListingCard(
-          imageUrl: 'assets/images/gadget3.jpg',
-          title: 'PS4 Controller - Broken Stick',
-          postDate: 'Posted 3 days ago',
-          price: '₱25',
-          views: '6 views • 0 messages',
-          status: 'Active',
-        ),
-      );
-    }
-
-    if (filter == null || filter == 'Sold') {
-      listingCards.add(
-        _buildListingCard(
-          imageUrl: 'assets/images/gadget2.jpg',
-          title: 'Dell Laptop - Missing Keys',
-          postDate: 'Sold 5 days ago',
-          price: '₱45',
-          views: '12 views • 4 messages',
-          status: 'Sold',
-        ),
-      );
-    }
-
-    if (filter == null || filter == 'Hidden') {
-      listingCards.add(
-        _buildListingCard(
-          imageUrl: 'assets/images/ipad_mini.jpg',
-          title: 'iPad Air - Screen Scratches',
-          postDate: 'Posted 1 week ago',
-          price: 'Free',
-          views: '8 views • 2 messages',
-          status: 'Donated',
-        ),
-      );
     }
 
     return ListView(

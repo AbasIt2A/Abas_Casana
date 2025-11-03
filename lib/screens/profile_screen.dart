@@ -4,9 +4,41 @@ import 'my_listings_screen.dart';
 import 'my_purchases_screen.dart';
 import 'edit_profile_screen.dart';
 import '../services/auth_services.dart';
+import '../services/database_service.dart';
+import '../services/listings_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final DatabaseService _dbService = DatabaseService();
+  Map<String, dynamic>? _userProfile;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final profile = await _dbService.getCurrentUserProfile();
+      setState(() {
+        _userProfile = profile;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading user profile: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +147,8 @@ class ProfileScreen extends StatelessWidget {
                                   onPressed: () async {
                                     final authService = AuthService();
                                     await authService.signOut();
+                                    // Clear user data from ListingsService
+                                    ListingsService().clear();
                                     // Close the dialog
                                     if (context.mounted) {
                                       Navigator.of(context).pop();
@@ -192,12 +226,12 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Stack(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 35,
-                    // MODIFIED: Updated to use your new profile image
-                    backgroundImage: AssetImage(
-                      'assets/images/ramon_profile.jpg',
-                    ),
+                    backgroundImage: _userProfile?['profile_pic_url'] != null
+                        ? NetworkImage(_userProfile!['profile_pic_url'])
+                        : const AssetImage('assets/images/ramon_profile.jpg') as ImageProvider,
+                    backgroundColor: Colors.grey[300],
                   ),
                   Positioned(
                     bottom: 0,
@@ -223,7 +257,9 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Sarah Johnson',
+                    _isLoading 
+                      ? 'Loading...' 
+                      : (_userProfile?['full_name'] ?? 'User'),
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 20,
@@ -231,7 +267,9 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'sarah.johnson@email.com',
+                    _isLoading 
+                      ? 'Loading...' 
+                      : (_userProfile?['email'] ?? 'No email'),
                     style: GoogleFonts.poppins(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14,
