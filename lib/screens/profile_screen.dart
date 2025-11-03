@@ -4,13 +4,56 @@ import 'my_listings_screen.dart';
 import 'my_purchases_screen.dart';
 import 'edit_profile_screen.dart';
 import '../services/auth_services.dart';
+import '../services/database_service.dart';
 import 'login_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final DatabaseService _dbService = DatabaseService();
+  Map<String, dynamic>? _userProfile;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final profile = await _dbService.getCurrentUserProfile();
+      if (mounted) {
+        setState(() {
+          _userProfile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading user profile: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  String get userName => _userProfile?['full_name'] ?? 'User';
+  String get userEmail => _userProfile?['email'] ?? 'email@example.com';
+  String? get profilePicUrl => _userProfile?['profile_pic_url'];
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: CustomScrollView(
@@ -198,12 +241,12 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Stack(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 35,
-                    // MODIFIED: Updated to use your new profile image
-                    backgroundImage: AssetImage(
-                      'assets/images/ramon_profile.jpg',
-                    ),
+                    backgroundImage: profilePicUrl != null
+                        ? NetworkImage(profilePicUrl!)
+                        : const AssetImage('assets/images/ramon_profile.jpg')
+                              as ImageProvider,
                   ),
                   Positioned(
                     bottom: 0,
@@ -213,7 +256,10 @@ class ProfileScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFFFB300), width: 2),
+                        border: Border.all(
+                          color: const Color(0xFFFFB300),
+                          width: 2,
+                        ),
                       ),
                       child: const Icon(
                         Icons.camera_alt,
@@ -229,7 +275,7 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Sarah Johnson',
+                    userName,
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 20,
@@ -237,7 +283,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'sarah.johnson@email.com',
+                    userEmail,
                     style: GoogleFonts.poppins(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14,
@@ -382,9 +428,14 @@ class ProfileScreen extends StatelessWidget {
           children: [
             if (trailingText != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
-                  color: trailingColor?.withValues(alpha: 0.15) ?? Colors.transparent,
+                  color:
+                      trailingColor?.withValues(alpha: 0.15) ??
+                      Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
