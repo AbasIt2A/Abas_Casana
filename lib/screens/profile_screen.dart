@@ -4,56 +4,12 @@ import 'my_listings_screen.dart';
 import 'my_purchases_screen.dart';
 import 'edit_profile_screen.dart';
 import '../services/auth_services.dart';
-import '../services/database_service.dart';
-import 'login_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  final DatabaseService _dbService = DatabaseService();
-  Map<String, dynamic>? _userProfile;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserProfile();
-  }
-
-  Future<void> _loadUserProfile() async {
-    try {
-      final profile = await _dbService.getCurrentUserProfile();
-      if (mounted) {
-        setState(() {
-          _userProfile = profile;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      print('Error loading user profile: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  String get userName => _userProfile?['full_name'] ?? 'User';
-  String get userEmail => _userProfile?['email'] ?? 'email@example.com';
-  String? get profilePicUrl => _userProfile?['profile_pic_url'];
-
-  @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: CustomScrollView(
@@ -159,17 +115,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   onPressed: () async {
                                     final authService = AuthService();
                                     await authService.signOut();
-                                    // Pop the dialog first
-                                    Navigator.of(context).pop();
-                                    // Pop to root and push login screen
+                                    // Close the dialog
                                     if (context.mounted) {
-                                      Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const LoginScreen(),
-                                        ),
-                                        (Route<dynamic> route) => false,
-                                      );
+                                      Navigator.of(context).pop();
+                                      // AuthWrapper will automatically handle navigation to LoginScreen
+                                      // No need for manual navigation - just pop all screens to root
+                                      Navigator.of(context).popUntil((route) => route.isFirst);
                                     }
                                   },
                                   child: const Text(
@@ -241,12 +192,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Stack(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 35,
-                    backgroundImage: profilePicUrl != null
-                        ? NetworkImage(profilePicUrl!)
-                        : const AssetImage('assets/images/ramon_profile.jpg')
-                              as ImageProvider,
+                    // MODIFIED: Updated to use your new profile image
+                    backgroundImage: AssetImage(
+                      'assets/images/ramon_profile.jpg',
+                    ),
                   ),
                   Positioned(
                     bottom: 0,
@@ -256,10 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFFFFB300),
-                          width: 2,
-                        ),
+                        border: Border.all(color: const Color(0xFFFFB300), width: 2),
                       ),
                       child: const Icon(
                         Icons.camera_alt,
@@ -275,7 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    userName,
+                    'Sarah Johnson',
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 20,
@@ -283,7 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   Text(
-                    userEmail,
+                    'sarah.johnson@email.com',
                     style: GoogleFonts.poppins(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14,
@@ -428,14 +376,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             if (trailingText != null)
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color:
-                      trailingColor?.withValues(alpha: 0.15) ??
-                      Colors.transparent,
+                  color: trailingColor?.withValues(alpha: 0.15) ?? Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

@@ -17,9 +17,6 @@ class AuthService {
       final AuthResponse response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: {'full_name': fullName, 'phone_number': phoneNumber},
-        emailRedirectTo:
-            null, // Allow immediate login without email confirmation
       );
 
       // Store user data in database

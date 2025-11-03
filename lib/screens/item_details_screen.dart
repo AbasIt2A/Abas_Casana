@@ -497,8 +497,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           Expanded(
             child: OutlinedButton.icon(
               onPressed: () {
-                // Get seller name from widget or use the seller displayed on this screen
-                final sellerName = widget.sellerName ?? 'Mark Santos';
+                // Get seller name from widget or use default
+                final sellerName = widget.sellerName ?? 'John Smith';
                 final sellerAvatar =
                     widget.sellerAvatar ?? 'assets/images/profile.png';
 
