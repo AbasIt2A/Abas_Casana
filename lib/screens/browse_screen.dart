@@ -16,182 +16,66 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: Stack(
-        children: [
-          // Premium gradient header
-          SafeArea(
-            bottom: false,
-            child: Container(
-              height: screenHeight * 0.24,
-              width: screenWidth,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF3F51B5), Color(0xFF5C6BC0), Color(0xFF303F9F)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3F51B5).withValues(alpha: 0.3),
-                    blurRadius: 30,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Decorative circles
-                  Positioned(
-                    top: -50,
-                    right: -30,
-                    child: Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.1),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 20,
-                    left: -40,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFFFB300).withValues(alpha: 0.15),
-                      ),
-                    ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 12),
-                      _buildHeader(),
-                      const SizedBox(height: 20),
-                      _buildSearchBar(),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF3F51B5),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Browse Market',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
           ),
-          // Content section
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              height: screenHeight * 0.79,
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(35),
-                  topRight: Radius.circular(35),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 30,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
-              ),
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 16.0),
-                children: [
-                  _buildTagFilters(),
-                  const SizedBox(height: 20),
-                  isGridView ? _buildGridItems() : _buildListItems(),
-                  const SizedBox(height: 24),
-                ],
-              ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
+            onPressed: () {},
+          ),
+          const Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              radius: 18,
+              backgroundImage: AssetImage('assets/images/profile.png'),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Column(
         children: [
-          Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-              const SizedBox(width: 16),
-              Text(
-                'Browse Market',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 22,
-                ),
-              ),
-            ],
+            ),
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 24.0),
+            child: Column(
+              children: [
+                _buildSearchBar(),
+                const SizedBox(height: 16),
+                _buildFilterAndLayoutButtons(),
+              ],
+            ),
           ),
-          Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.notifications_outlined, 
-                    color: Colors.white, size: 22),
-                  onPressed: () {},
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFFFB300),
-                    width: 2.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFFB300).withValues(alpha: 0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const CircleAvatar(
-                  radius: 18,
-                  backgroundImage: AssetImage('assets/images/profile.png'),
-                ),
-              ),
-            ],
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                _buildTagFilters(),
+                const SizedBox(height: 20),
+                isGridView ? _buildGridItems() : _buildListItems(),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ],
       ),
@@ -199,123 +83,33 @@ class _BrowseScreenState extends State<BrowseScreen> {
   }
 
   Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: const Color(0xFFFFB300).withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF3F51B5), Color(0xFF5C6BC0)],
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.search, color: Colors.white, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
-                      decoration: InputDecoration(
-                        hintText: 'Search electronics...',
-                        hintStyle: GoogleFonts.poppins(
-                          color: Colors.grey[500],
-                          fontSize: 14,
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          const Icon(Icons.search, color: Colors.grey),
           const SizedBox(width: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.95),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: isGridView
-                        ? const LinearGradient(
-                            colors: [Color(0xFFFFB300), Color(0xFFFF8C00)])
-                        : null,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.grid_view_rounded,
-                      color: isGridView ? Colors.white : Colors.grey[600],
-                      size: 22,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        isGridView = true;
-                      });
-                    },
-                  ),
-                ),
-                Container(
-                  width: 1.5,
-                  height: 28,
-                  color: Colors.grey[300],
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: !isGridView
-                        ? const LinearGradient(
-                            colors: [Color(0xFFFFB300), Color(0xFFFF8C00)])
-                        : null,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.view_list_rounded,
-                      color: !isGridView ? Colors.white : Colors.grey[600],
-                      size: 22,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        isGridView = false;
-                      });
-                    },
-                  ),
-                ),
-              ],
+          Expanded(
+            child: TextField(
+              style: GoogleFonts.poppins(fontSize: 14),
+              decoration: InputDecoration(
+                hintText: 'Search electronics...',
+                hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
             ),
           ),
         ],
@@ -323,17 +117,83 @@ class _BrowseScreenState extends State<BrowseScreen> {
     );
   }
 
+  Widget _buildFilterAndLayoutButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.filter_list, size: 20),
+            label: Text(
+              'Filters',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF3F51B5),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 4,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.grid_view,
+                  color: isGridView ? const Color(0xFFFFB300) : Colors.grey,
+                ),
+                onPressed: () {
+                  setState(() {
+                    isGridView = true;
+                  });
+                },
+              ),
+              Container(width: 1, height: 24, color: Colors.grey[300]),
+              IconButton(
+                icon: Icon(
+                  Icons.list,
+                  color: isGridView ? Colors.grey : const Color(0xFFFFB300),
+                ),
+                onPressed: () {
+                  setState(() {
+                    isGridView = false;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTagFilters() {
     final tags = [
       'All Items',
       'Working',
+      'Needs Repair',
       'For Parts',
       'Phones',
       'Laptops',
-      'New',
     ];
     return SizedBox(
-      height: 42,
+      height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: tags.length,
@@ -341,47 +201,32 @@ class _BrowseScreenState extends State<BrowseScreen> {
           final tag = tags[index];
           final isSelected = selectedFilter == tag;
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5.0),
-            child: GestureDetector(
-              onTap: () {
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: ChoiceChip(
+              label: Text(tag),
+              selected: isSelected,
+              onSelected: (bool selected) {
                 setState(() {
-                  selectedFilter = isSelected ? null : tag;
+                  selectedFilter = selected ? tag : null;
                 });
               },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                decoration: BoxDecoration(
-                  gradient: isSelected
-                      ? const LinearGradient(
-                          colors: [Color(0xFFFFB300), Color(0xFFFF8C00)])
-                      : null,
-                  color: isSelected ? null : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isSelected
-                        ? Colors.transparent
-                        : const Color(0xFF3F51B5).withValues(alpha: 0.2),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isSelected
-                          ? const Color(0xFFFFB300).withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: isSelected ? 12 : 8,
-                      offset: Offset(0, isSelected ? 4 : 2),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  tag,
-                  style: GoogleFonts.poppins(
-                    color: isSelected ? Colors.white : const Color(0xFF3F51B5),
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
+              selectedColor: const Color(0xFFFFB300),
+              backgroundColor: Colors.white,
+              labelStyle: GoogleFonts.poppins(
+                color: isSelected ? Colors.white : Colors.grey[700],
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 13,
               ),
+              side: BorderSide(
+                color: isSelected
+                    ? const Color(0xFFFFB300)
+                    : Colors.grey.shade300,
+                width: 1,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: isSelected ? 2 : 0,
             ),
           );
         },
@@ -390,77 +235,273 @@ class _BrowseScreenState extends State<BrowseScreen> {
   }
 
   Widget _buildGridItems() {
-    return GridView.count(
+    // All available items with their categories
+    final allItems = [
+      {
+        'imageUrl': 'assets/images/gadget1.jpg',
+        'title': 'iPhone 12 - Cracked',
+        'price': '\$45',
+        'status': 'For Parts',
+        'statusColor': Colors.red,
+        'category': 'Phones',
+      },
+      {
+        'imageUrl': 'assets/images/gadget2.jpg',
+        'title': 'Dell Laptop',
+        'price': '\$120',
+        'status': 'Working',
+        'statusColor': Colors.green,
+        'category': 'Laptops',
+      },
+      {
+        'imageUrl': 'assets/images/gadget4.jpg',
+        'title': 'iPad Mini',
+        'price': '\$90',
+        'status': 'Working',
+        'statusColor': Colors.green,
+        'category': 'Phones',
+      },
+      {
+        'imageUrl': 'assets/images/gadget5.jpg',
+        'title': 'PS4 Console - Disc Drive Issue',
+        'price': '\$85',
+        'status': 'Needs Repair',
+        'statusColor': Colors.orange,
+        'category': 'Phones',
+      },
+      {
+        'imageUrl': 'assets/images/gadget3.jpg',
+        'title': 'MacBook Pro 2018',
+        'price': '\$150',
+        'status': 'For Parts',
+        'statusColor': Colors.blue,
+        'category': 'Laptops',
+      },
+      {
+        'imageUrl': 'assets/images/gadget1.jpg',
+        'title': 'Samsung Galaxy S20',
+        'price': '\$95',
+        'status': 'Working',
+        'statusColor': Colors.green,
+        'category': 'Phones',
+      },
+      {
+        'imageUrl': 'assets/images/gadget2.jpg',
+        'title': 'HP Laptop - Battery Dead',
+        'price': '\$75',
+        'status': 'Needs Repair',
+        'statusColor': Colors.orange,
+        'category': 'Laptops',
+      },
+    ];
+
+    // Filter items based on selected filter
+    final filteredItems = allItems.where((item) {
+      if (selectedFilter == null || selectedFilter == 'All Items') {
+        return true;
+      } else if (selectedFilter == 'Working' ||
+          selectedFilter == 'For Parts' ||
+          selectedFilter == 'Needs Repair') {
+        return item['status'] == selectedFilter;
+      } else {
+        // Category filter (Phones, Laptops)
+        return item['category'] == selectedFilter;
+      }
+    }).toList();
+
+    if (filteredItems.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.inventory_2_outlined,
+                size: 80,
+                color: Colors.grey[300],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No items found',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Try selecting a different filter',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: 16.0,
-      mainAxisSpacing: 16.0,
-      childAspectRatio: 0.65,
-      children: [
-        _buildItemCard(
-          imageUrl: 'assets/images/gadget1.jpg',
-          title: 'iPhone 12 - Cracked',
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16.0,
+        mainAxisSpacing: 16.0,
+        childAspectRatio: 0.65,
+      ),
+      itemCount: filteredItems.length,
+      itemBuilder: (context, index) {
+        final item = filteredItems[index];
+        return _buildItemCard(
+          imageUrl: item['imageUrl'] as String,
+          title: item['title'] as String,
           description: '',
-          price: '\$45',
-          status: 'For Parts',
-          statusColor: Colors.red,
+          price: item['price'] as String,
+          status: item['status'] as String,
+          statusColor: item['statusColor'] as Color,
           showViewButton: true,
-        ),
-        _buildItemCard(
-          imageUrl: 'assets/images/gadget2.jpg',
-          title: 'Dell Laptop',
-          description: '',
-          price: '\$120',
-          status: 'Working',
-          statusColor: Colors.green,
-          showViewButton: true,
-        ),
-        // MODIFIED: Item status and price updated
-        _buildItemCard(
-          imageUrl: 'assets/images/gadget4.jpg',
-          title: 'iPad Mini',
-          description: '',
-          price: '\$90',
-          status: 'Working',
-          statusColor: Colors.green,
-          showViewButton: true,
-        ),
-        // MODIFIED: Item status updated
-        _buildItemCard(
-          imageUrl: 'assets/images/gadget5.jpg',
-          title: 'PS4 Console',
-          description: '',
-          price: '\$85',
-          status: 'Working',
-          statusColor: Colors.green,
-          showViewButton: true,
-        ),
-      ],
+        );
+      },
     );
   }
 
   Widget _buildListItems() {
+    // All available items with their categories
+    final allItems = [
+      {
+        'imageUrl': 'assets/images/gadget1.jpg',
+        'title': 'iPhone 12 - Cracked',
+        'description': 'Screen broken, otherwise works fine',
+        'price': '\$45',
+        'status': 'For Parts',
+        'statusColor': Colors.red,
+        'category': 'Phones',
+      },
+      {
+        'imageUrl': 'assets/images/gadget2.jpg',
+        'title': 'Dell Laptop',
+        'description': 'Used, good condition',
+        'price': '\$120',
+        'status': 'Working',
+        'statusColor': Colors.green,
+        'category': 'Laptops',
+      },
+      {
+        'imageUrl': 'assets/images/gadget4.jpg',
+        'title': 'iPad Mini',
+        'description': 'Great condition, minor scratches',
+        'price': '\$90',
+        'status': 'Working',
+        'statusColor': Colors.green,
+        'category': 'Phones',
+      },
+      {
+        'imageUrl': 'assets/images/gadget5.jpg',
+        'title': 'PS4 Console - Disc Drive Issue',
+        'description': 'Disc drive not working, needs repair',
+        'price': '\$85',
+        'status': 'Needs Repair',
+        'statusColor': Colors.orange,
+        'category': 'Phones',
+      },
+      {
+        'imageUrl': 'assets/images/gadget3.jpg',
+        'title': 'MacBook Pro 2018',
+        'description': 'Water damage, good for parts',
+        'price': '\$150',
+        'status': 'For Parts',
+        'statusColor': Colors.blue,
+        'category': 'Laptops',
+      },
+      {
+        'imageUrl': 'assets/images/gadget1.jpg',
+        'title': 'Samsung Galaxy S20',
+        'description': 'Fully functional, no issues',
+        'price': '\$95',
+        'status': 'Working',
+        'statusColor': Colors.green,
+        'category': 'Phones',
+      },
+      {
+        'imageUrl': 'assets/images/gadget2.jpg',
+        'title': 'HP Laptop - Battery Dead',
+        'description': 'Battery needs replacement, otherwise works',
+        'price': '\$75',
+        'status': 'Needs Repair',
+        'statusColor': Colors.orange,
+        'category': 'Laptops',
+      },
+    ];
+
+    // Filter items based on selected filter
+    final filteredItems = allItems.where((item) {
+      if (selectedFilter == null || selectedFilter == 'All Items') {
+        return true;
+      } else if (selectedFilter == 'Working' ||
+          selectedFilter == 'For Parts' ||
+          selectedFilter == 'Needs Repair') {
+        return item['status'] == selectedFilter;
+      } else {
+        // Category filter (Phones, Laptops)
+        return item['category'] == selectedFilter;
+      }
+    }).toList();
+
+    if (filteredItems.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.inventory_2_outlined,
+                size: 80,
+                color: Colors.grey[300],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No items found',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Try selecting a different filter',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Column(
-      children: [
-        _buildItemCard(
-          imageUrl: 'assets/images/gadget1.jpg',
-          title: 'iPhone 12 - Cracked',
-          description: 'Screen broken, otherwise works fine',
-          price: '\$45',
-          status: 'For Parts',
-          statusColor: Colors.red,
-        ),
-        const SizedBox(height: 16),
-        _buildItemCard(
-          imageUrl: 'assets/images/gadget2.jpg',
-          title: 'Dell Laptop',
-          description: 'Used, good condition',
-          price: '\$120',
-          status: 'Working',
-          statusColor: Colors.green,
-        ),
-      ],
+      children: filteredItems.map((item) {
+        return Column(
+          children: [
+            _buildItemCard(
+              imageUrl: item['imageUrl'] as String,
+              title: item['title'] as String,
+              description: item['description'] as String,
+              price: item['price'] as String,
+              status: item['status'] as String,
+              statusColor: item['statusColor'] as Color,
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      }).toList(),
     );
   }
 
@@ -484,7 +525,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
               title: title,
               price: price,
               status: status,
-              imageUrls: [imageUrl],
+              imageUrls: [imageUrl], // <-- FIXED: use imageUrls
             ),
           ),
         );
@@ -492,16 +533,12 @@ class _BrowseScreenState extends State<BrowseScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: const Color(0xFF3F51B5).withValues(alpha: 0.15),
-            width: 1.5,
-          ),
+          borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3F51B5).withValues(alpha: 0.12),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -512,8 +549,8 @@ class _BrowseScreenState extends State<BrowseScreen> {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(18),
-                    topRight: Radius.circular(18),
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(15),
                   ),
                   child: Image.asset(
                     imageUrl,
@@ -523,33 +560,14 @@ class _BrowseScreenState extends State<BrowseScreen> {
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         height: 120,
-                        color: Colors.grey[100],
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          color: Colors.grey[400],
+                        color: Colors.grey[200],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey,
                           size: 50,
                         ),
                       );
                     },
-                  ),
-                ),
-                // Gradient overlay to cover any text in images
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 60,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.7),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
                   ),
                 ),
                 Positioned(
@@ -557,27 +575,16 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   left: 10,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
+                      horizontal: 8,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
                       color: statusColor,
                       borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: statusColor.withValues(alpha: 0.5),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
                     ),
                     child: Text(
                       status,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
                 ),
@@ -587,22 +594,16 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   child: GestureDetector(
                     onTap: () {
                       setState(() {
+                        // Generate unique ID for browse items based on title
                         final itemId = 'browse_${title.replaceAll(' ', '_')}';
                         ListingsService().toggleFavoriteById(itemId);
                       });
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Colors.white.withOpacity(0.7),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                       ),
                       child: Icon(
                         ListingsService().isFavorite(
@@ -610,12 +611,13 @@ class _BrowseScreenState extends State<BrowseScreen> {
                             )
                             ? Icons.favorite
                             : Icons.favorite_border,
-                        color: ListingsService().isFavorite(
+                        color:
+                            ListingsService().isFavorite(
                               'browse_${title.replaceAll(' ', '_')}',
                             )
-                            ? const Color(0xFFFF5252)
-                            : Colors.grey[600],
-                        size: 18,
+                            ? Colors.red
+                            : Colors.black,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -623,119 +625,71 @@ class _BrowseScreenState extends State<BrowseScreen> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(14.0),
+              padding: const EdgeInsets.all(12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (isListView && description.isNotEmpty) ...[
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
                       description,
                       style: GoogleFonts.poppins(
                         color: Colors.grey[600],
                         fontSize: 12,
-                        height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFFB300).withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          price,
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 8),
+                  Text(
+                    price,
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFFFFB300),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   if (showViewButton) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF3F51B5), Color(0xFF5C6BC0)],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF3F51B5).withValues(alpha: 0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => ItemDetailsScreen(
-                                    title: title,
-                                    price: price,
-                                    status: status,
-                                    imageUrls: [imageUrl],
-                                  ),
-                                ),
-                              );
-                            },
-                            borderRadius: BorderRadius.circular(12),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.visibility_outlined, 
-                                    color: Colors.white, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'View Details',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ItemDetailsScreen(
+                                title: title,
+                                price: price,
+                                status: status,
+                                imageUrls: [imageUrl],
                               ),
                             ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3F51B5),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'View',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),

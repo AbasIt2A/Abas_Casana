@@ -1,7 +1,6 @@
 import 'dart:io' show File;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../services/listings_service.dart';
 
 class MyListingsScreen extends StatefulWidget {
@@ -38,62 +37,42 @@ class _MyListingsScreenState extends State<MyListingsScreen>
         return true;
       },
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF3F51B5), Color(0xFF5C6BC0), Color(0xFF303F9F)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
+          backgroundColor: Colors.white,
           elevation: 0,
-          leading: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 1.5,
-              ),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text(
+          title: const Text(
             'My Listings',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 20,
-            ),
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
           ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(60),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildTab('All', _listingsService.totalCount + 4, 0),
-                    const SizedBox(width: 8),
-                    _buildTab('Active', _listingsService.getCountByStatus('Active') + 2, 1),
-                    const SizedBox(width: 8),
-                    _buildTab('Sold', _listingsService.getCountByStatus('Sold') + 1, 2),
-                    const SizedBox(width: 8),
-                    _buildTab('Wishlist', _listingsService.favoriteCount, 3),
-                    const SizedBox(width: 8),
-                    _buildTab('Hidden', _listingsService.getCountByStatus('Hidden') + 1, 4),
-                  ],
-                ),
-              ),
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.black,
+            indicator: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              color: Colors.green,
             ),
+            tabs: [
+              Tab(text: 'All (${_listingsService.totalCount + 4})'),
+              Tab(
+                text:
+                    'Active (${_listingsService.getCountByStatus('Active') + 2})',
+              ),
+              Tab(
+                text: 'Sold (${_listingsService.getCountByStatus('Sold') + 1})',
+              ),
+              Tab(text: 'Wishlist (${_listingsService.favoriteCount})'),
+              Tab(
+                text:
+                    'Hidden (${_listingsService.getCountByStatus('Hidden') + 1})',
+              ),
+            ],
           ),
         ),
         body: TabBarView(
@@ -109,73 +88,6 @@ class _MyListingsScreenState extends State<MyListingsScreen>
             _buildListingList(filter: 'Wishlist'),
             // Hidden Items
             _buildListingList(filter: 'Hidden'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTab(String label, int count, int index) {
-    final isSelected = _tabController.index == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _tabController.animateTo(index);
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          gradient: isSelected
-              ? const LinearGradient(
-                  colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
-                )
-              : null,
-          color: isSelected ? null : Colors.white.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? Colors.transparent : Colors.white.withValues(alpha: 0.3),
-            width: 1.5,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFFFFB300).withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Colors.white.withValues(alpha: 0.3)
-                    : Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                count.toString(),
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -448,26 +360,12 @@ class _MyListingsScreenState extends State<MyListingsScreen>
     bool isDonated = status == 'Donated';
     bool isActive = status == 'Active';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14.0),
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.grey.shade200,
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
             Row(
@@ -548,60 +446,45 @@ class _MyListingsScreenState extends State<MyListingsScreen>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
+                          Flexible(
                             child: Text(
                               title,
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
+                              style: const TextStyle(
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
                               ),
                               overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
                             ),
                           ),
-                          const SizedBox(width: 8),
                           if (isActive)
-                            _buildStatusChip('Active', const Color(0xFF4CAF50)),
+                            _buildStatusChip('Active', Colors.green),
                           if (isSold) _buildStatusChip('Sold', Colors.grey),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Icon(Icons.access_time, size: 12, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(
-                            postDate,
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[600],
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
-                        price,
-                        style: GoogleFonts.poppins(
-                          color: const Color(0xFF3F51B5),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
+                        postDate,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Icon(Icons.visibility, size: 12, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(
-                            views,
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[600],
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 4),
+                      Text(
+                        price,
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        views,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
@@ -620,31 +503,17 @@ class _MyListingsScreenState extends State<MyListingsScreen>
 
   Widget _buildStatusChip(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        gradient: text == 'Active'
-            ? const LinearGradient(
-                colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
-              )
-            : null,
-        color: text != 'Active' ? color.withValues(alpha: 0.15) : null,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: text == 'Active'
-            ? [
-                BoxShadow(
-                  color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : null,
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         text,
-        style: GoogleFonts.poppins(
-          color: text == 'Active' ? Colors.white : color,
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
         ),
       ),
     );
@@ -654,83 +523,19 @@ class _MyListingsScreenState extends State<MyListingsScreen>
     return Row(
       children: [
         Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFFB300).withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+          child: ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
             ),
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Mark as Sold',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+            child: const Text('Mark as Sold'),
           ),
         ),
         const SizedBox(width: 8),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF3F51B5), width: 1.5),
-          ),
-          child: OutlinedButton(
-            onPressed: () {},
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF3F51B5),
-              side: BorderSide.none,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'Edit',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 13),
-            ),
-          ),
-        ),
+        OutlinedButton(onPressed: () {}, child: const Text('Edit')),
         const SizedBox(width: 8),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF3F51B5), width: 1.5),
-          ),
-          child: OutlinedButton(
-            onPressed: () {},
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF3F51B5),
-              side: BorderSide.none,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Icon(Icons.more_horiz, size: 20),
-          ),
-        ),
+        OutlinedButton(onPressed: () {}, child: const Icon(Icons.more_horiz)),
       ],
     );
   }
@@ -739,52 +544,15 @@ class _MyListingsScreenState extends State<MyListingsScreen>
     return Row(
       children: [
         Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                'Sold',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-            ),
-          ),
+          child: OutlinedButton(onPressed: () {}, child: const Text('Sold')),
         ),
+        const SizedBox(width: 8),
+        OutlinedButton(onPressed: () {}, child: const Text('View')),
         const SizedBox(width: 8),
         OutlinedButton(
           onPressed: () {},
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF3F51B5),
-            side: const BorderSide(color: Color(0xFF3F51B5), width: 1.5),
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: Text(
-            'View',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
-          ),
-        ),
-        const SizedBox(width: 8),
-        OutlinedButton(
-          onPressed: () {},
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.red,
-            side: const BorderSide(color: Colors.red, width: 1.5),
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: const Icon(Icons.delete_outline, size: 20),
+          style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+          child: const Icon(Icons.delete_outline),
         ),
       ],
     );
@@ -797,52 +565,16 @@ class _MyListingsScreenState extends State<MyListingsScreen>
           child: ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3F51B5),
+              backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
             ),
-            child: Text(
-              'Mark as Donated',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
+            child: const Text('Mark as Donated'),
           ),
         ),
         const SizedBox(width: 8),
-        OutlinedButton(
-          onPressed: () {},
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF3F51B5),
-            side: const BorderSide(color: Color(0xFF3F51B5), width: 1.5),
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: Text(
-            'Edit',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
-          ),
-        ),
+        OutlinedButton(onPressed: () {}, child: const Text('Edit')),
         const SizedBox(width: 8),
-        OutlinedButton(
-          onPressed: () {},
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF3F51B5),
-            side: const BorderSide(color: Color(0xFF3F51B5), width: 1.5),
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: const Icon(Icons.more_horiz, size: 20),
-        ),
+        OutlinedButton(onPressed: () {}, child: const Icon(Icons.more_horiz)),
       ],
     );
   }

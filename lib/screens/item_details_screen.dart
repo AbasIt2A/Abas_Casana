@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'chat_details_screen.dart';
 
 class ItemDetailsScreen extends StatefulWidget {
   final List<String> imageUrls;
   final String title;
   final String price;
   final String status;
+  final String? sellerName;
+  final String? sellerAvatar;
 
   const ItemDetailsScreen({
     super.key,
@@ -13,6 +16,8 @@ class ItemDetailsScreen extends StatefulWidget {
     required this.title,
     required this.price,
     required this.status,
+    this.sellerName,
+    this.sellerAvatar,
   });
 
   @override
@@ -326,10 +331,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.poppins(
-            color: Colors.grey[600],
-            fontSize: 14,
-          ),
+          style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 14),
         ),
         Text(
           value,
@@ -378,10 +380,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFFFB300),
-                    width: 3,
-                  ),
+                  border: Border.all(color: const Color(0xFFFFB300), width: 3),
                 ),
                 child: const CircleAvatar(
                   radius: 28,
@@ -404,7 +403,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                        const Icon(
+                          Icons.location_on,
+                          size: 14,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -420,11 +423,31 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.star, color: Color(0xFFFFB300), size: 16),
-                        const Icon(Icons.star, color: Color(0xFFFFB300), size: 16),
-                        const Icon(Icons.star, color: Color(0xFFFFB300), size: 16),
-                        const Icon(Icons.star, color: Color(0xFFFFB300), size: 16),
-                        const Icon(Icons.star_half, color: Color(0xFFFFB300), size: 16),
+                        const Icon(
+                          Icons.star,
+                          color: Color(0xFFFFB300),
+                          size: 16,
+                        ),
+                        const Icon(
+                          Icons.star,
+                          color: Color(0xFFFFB300),
+                          size: 16,
+                        ),
+                        const Icon(
+                          Icons.star,
+                          color: Color(0xFFFFB300),
+                          size: 16,
+                        ),
+                        const Icon(
+                          Icons.star,
+                          color: Color(0xFFFFB300),
+                          size: 16,
+                        ),
+                        const Icon(
+                          Icons.star_half,
+                          color: Color(0xFFFFB300),
+                          size: 16,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           '4.8 (127)',
@@ -473,7 +496,21 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         children: [
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                // Get seller name from widget or use the seller displayed on this screen
+                final sellerName = widget.sellerName ?? 'Mark Santos';
+                final sellerAvatar =
+                    widget.sellerAvatar ?? 'assets/images/profile.png';
+
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ChatDetailsScreen(
+                      name: sellerName,
+                      avatarUrl: sellerAvatar,
+                    ),
+                  ),
+                );
+              },
               icon: const Icon(Icons.chat_bubble_outline, size: 20),
               label: Text(
                 'Message',
