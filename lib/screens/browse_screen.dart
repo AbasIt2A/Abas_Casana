@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'item_details_screen.dart';
 import '../services/listings_service.dart';
+import '../models/listing_item.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
@@ -13,6 +14,54 @@ class BrowseScreen extends StatefulWidget {
 class _BrowseScreenState extends State<BrowseScreen> {
   String? selectedFilter = 'All Items';
   bool isGridView = true;
+  final ListingsService _listingsService = ListingsService();
+  List<ListingItem> _browseListings = [];
+  bool _isLoadingListings = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBrowseListings();
+  }
+
+  Future<void> _loadBrowseListings() async {
+    setState(() {
+      _isLoadingListings = true;
+    });
+
+    try {
+      String? conditionFilter;
+      String? categoryFilter;
+
+      // Map filter to database values
+      if (selectedFilter == 'Working') {
+        conditionFilter = 'Working';
+      } else if (selectedFilter == 'Needs Repair') {
+        conditionFilter = 'Needs Repair';
+      } else if (selectedFilter == 'For Parts') {
+        conditionFilter = 'For Parts';
+      } else if (selectedFilter == 'Phones') {
+        categoryFilter = 'Phones';
+      } else if (selectedFilter == 'Laptops') {
+        categoryFilter = 'Laptops';
+      }
+
+      final listings = await _listingsService.getMarketplaceListings(
+        condition: conditionFilter,
+        category: categoryFilter,
+      );
+
+      setState(() {
+        _browseListings = listings;
+        _isLoadingListings = false;
+      });
+    } catch (e) {
+      print('Error loading browse listings: $e');
+      setState(() {
+        _isLoadingListings = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -209,6 +258,8 @@ class _BrowseScreenState extends State<BrowseScreen> {
                 setState(() {
                   selectedFilter = selected ? tag : null;
                 });
+                // Reload listings with new filter
+                _loadBrowseListings();
               },
               selectedColor: const Color(0xFFFFB300),
               backgroundColor: Colors.white,
@@ -235,297 +286,62 @@ class _BrowseScreenState extends State<BrowseScreen> {
   }
 
   Widget _buildGridItems() {
-    // All available items with their categories
-    final allItems = [
-      {
-        'imageUrl': 'assets/images/gadget1.jpg',
-        'title': 'iPhone 12 - Cracked',
-        'price': '\$45',
-        'status': 'For Parts',
-        'statusColor': Colors.red,
-        'category': 'Phones',
-      },
-      {
-        'imageUrl': 'assets/images/gadget2.jpg',
-        'title': 'Dell Laptop',
-        'price': '\$120',
-        'status': 'Working',
-        'statusColor': Colors.green,
-        'category': 'Laptops',
-      },
-      {
-        'imageUrl': 'assets/images/gadget4.jpg',
-        'title': 'iPad Mini',
-        'price': '\$90',
-        'status': 'Working',
-        'statusColor': Colors.green,
-        'category': 'Phones',
-      },
-      {
-        'imageUrl': 'assets/images/gadget5.jpg',
-        'title': 'PS4 Console - Disc Drive Issue',
-        'price': '\$85',
-        'status': 'Needs Repair',
-        'statusColor': Colors.orange,
-        'category': 'Phones',
-      },
-      {
-        'imageUrl': 'assets/images/gadget3.jpg',
-        'title': 'MacBook Pro 2018',
-        'price': '\$150',
-        'status': 'For Parts',
-        'statusColor': Colors.blue,
-        'category': 'Laptops',
-      },
-      {
-        'imageUrl': 'assets/images/gadget1.jpg',
-        'title': 'Samsung Galaxy S20',
-        'price': '\$95',
-        'status': 'Working',
-        'statusColor': Colors.green,
-        'category': 'Phones',
-      },
-      {
-        'imageUrl': 'assets/images/gadget2.jpg',
-        'title': 'HP Laptop - Battery Dead',
-        'price': '\$75',
-        'status': 'Needs Repair',
-        'statusColor': Colors.orange,
-        'category': 'Laptops',
-      },
-    ];
+    if (_isLoadingListings) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
-    // Filter items based on selected filter
-    final filteredItems = allItems.where((item) {
-      if (selectedFilter == null || selectedFilter == 'All Items') {
-        return true;
-      } else if (selectedFilter == 'Working' ||
-          selectedFilter == 'For Parts' ||
-          selectedFilter == 'Needs Repair') {
-        return item['status'] == selectedFilter;
-      } else {
-        // Category filter (Phones, Laptops)
-        return item['category'] == selectedFilter;
-      }
-    }).toList();
-
-    if (filteredItems.isEmpty) {
+    if (_browseListings.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.inventory_2_outlined,
-                size: 80,
-                color: Colors.grey[300],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No items found',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Try selecting a different filter',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
+          child: Text(
+            'No items from other users.\nTry changing the filter or check back later.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              color: Colors.grey,
+              fontSize: 16,
+            ),
           ),
         ),
       );
     }
 
     return GridView.builder(
-      shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 16.0,
-        mainAxisSpacing: 16.0,
-        childAspectRatio: 0.65,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.75,
       ),
-      itemCount: filteredItems.length,
+      itemCount: _browseListings.length,
       itemBuilder: (context, index) {
-        final item = filteredItems[index];
-        return _buildItemCard(
-          imageUrl: item['imageUrl'] as String,
-          title: item['title'] as String,
-          description: '',
-          price: item['price'] as String,
-          status: item['status'] as String,
-          statusColor: item['statusColor'] as Color,
-          showViewButton: true,
-        );
+        final item = _browseListings[index];
+        return _buildBrowseGridItem(item);
       },
     );
   }
 
-  Widget _buildListItems() {
-    // All available items with their categories
-    final allItems = [
-      {
-        'imageUrl': 'assets/images/gadget1.jpg',
-        'title': 'iPhone 12 - Cracked',
-        'description': 'Screen broken, otherwise works fine',
-        'price': '\$45',
-        'status': 'For Parts',
-        'statusColor': Colors.red,
-        'category': 'Phones',
-      },
-      {
-        'imageUrl': 'assets/images/gadget2.jpg',
-        'title': 'Dell Laptop',
-        'description': 'Used, good condition',
-        'price': '\$120',
-        'status': 'Working',
-        'statusColor': Colors.green,
-        'category': 'Laptops',
-      },
-      {
-        'imageUrl': 'assets/images/gadget4.jpg',
-        'title': 'iPad Mini',
-        'description': 'Great condition, minor scratches',
-        'price': '\$90',
-        'status': 'Working',
-        'statusColor': Colors.green,
-        'category': 'Phones',
-      },
-      {
-        'imageUrl': 'assets/images/gadget5.jpg',
-        'title': 'PS4 Console - Disc Drive Issue',
-        'description': 'Disc drive not working, needs repair',
-        'price': '\$85',
-        'status': 'Needs Repair',
-        'statusColor': Colors.orange,
-        'category': 'Phones',
-      },
-      {
-        'imageUrl': 'assets/images/gadget3.jpg',
-        'title': 'MacBook Pro 2018',
-        'description': 'Water damage, good for parts',
-        'price': '\$150',
-        'status': 'For Parts',
-        'statusColor': Colors.blue,
-        'category': 'Laptops',
-      },
-      {
-        'imageUrl': 'assets/images/gadget1.jpg',
-        'title': 'Samsung Galaxy S20',
-        'description': 'Fully functional, no issues',
-        'price': '\$95',
-        'status': 'Working',
-        'statusColor': Colors.green,
-        'category': 'Phones',
-      },
-      {
-        'imageUrl': 'assets/images/gadget2.jpg',
-        'title': 'HP Laptop - Battery Dead',
-        'description': 'Battery needs replacement, otherwise works',
-        'price': '\$75',
-        'status': 'Needs Repair',
-        'statusColor': Colors.orange,
-        'category': 'Laptops',
-      },
-    ];
-
-    // Filter items based on selected filter
-    final filteredItems = allItems.where((item) {
-      if (selectedFilter == null || selectedFilter == 'All Items') {
-        return true;
-      } else if (selectedFilter == 'Working' ||
-          selectedFilter == 'For Parts' ||
-          selectedFilter == 'Needs Repair') {
-        return item['status'] == selectedFilter;
-      } else {
-        // Category filter (Phones, Laptops)
-        return item['category'] == selectedFilter;
-      }
-    }).toList();
-
-    if (filteredItems.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.inventory_2_outlined,
-                size: 80,
-                color: Colors.grey[300],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No items found',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Try selecting a different filter',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      children: filteredItems.map((item) {
-        return Column(
-          children: [
-            _buildItemCard(
-              imageUrl: item['imageUrl'] as String,
-              title: item['title'] as String,
-              description: item['description'] as String,
-              price: item['price'] as String,
-              status: item['status'] as String,
-              statusColor: item['statusColor'] as Color,
-            ),
-            const SizedBox(height: 16),
-          ],
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildItemCard({
-    required String imageUrl,
-    required String title,
-    required String description,
-    required String price,
-    required String status,
-    required Color statusColor,
-    bool showViewButton = false,
-    bool showClaimButton = false,
-  }) {
-    bool isListView = description.isNotEmpty;
+  Widget _buildBrowseGridItem(ListingItem item) {
+    Color statusColor = _getStatusColor(item.condition);
 
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => ItemDetailsScreen(
-              title: title,
-              price: price,
-              status: status,
-              imageUrls: [imageUrl], // <-- FIXED: use imageUrls
+              imageUrls: item.imageUrls,
+              title: item.title,
+              price: item.price,
+              status: item.condition,
+              sellerName: item.sellerName,
+              sellerAvatar: item.sellerAvatar,
             ),
           ),
         );
@@ -533,189 +349,102 @@ class _BrowseScreenState extends State<BrowseScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Product Image
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(15),
-                    topRight: Radius.circular(15),
-                  ),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                   child: Image.asset(
-                    imageUrl,
-                    height: 120,
+                    item.imageUrls.isNotEmpty ? item.imageUrls[0] : 'assets/images/gadget1.jpg',
+                    height: 140,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        height: 120,
+                        height: 140,
                         color: Colors.grey[200],
-                        child: const Icon(
-                          Icons.image_not_supported,
-                          color: Colors.grey,
-                          size: 50,
-                        ),
+                        child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 50),
                       );
                     },
                   ),
                 ),
                 Positioned(
-                  top: 10,
-                  left: 10,
+                  top: 8,
+                  left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: statusColor,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      status,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      item.condition,
+                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
                 Positioned(
-                  top: 10,
-                  right: 10,
+                  top: 8,
+                  right: 8,
                   child: GestureDetector(
                     onTap: () {
                       setState(() {
-                        // Generate unique ID for browse items based on title
-                        final itemId = 'browse_${title.replaceAll(' ', '_')}';
-                        ListingsService().toggleFavoriteById(itemId);
+                        ListingsService().toggleFavoriteById(item.id);
                       });
                     },
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withOpacity(0.8),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        ListingsService().isFavorite(
-                              'browse_${title.replaceAll(' ', '_')}',
-                            )
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color:
-                            ListingsService().isFavorite(
-                              'browse_${title.replaceAll(' ', '_')}',
-                            )
-                            ? Colors.red
-                            : Colors.black,
-                        size: 20,
+                        ListingsService().isFavorite(item.id) ? Icons.favorite : Icons.favorite_border,
+                        color: ListingsService().isFavorite(item.id) ? Colors.red : Colors.black,
+                        size: 18,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
+            // Product Info
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    item.title,
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: Colors.black87,
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (isListView && description.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: GoogleFonts.poppins(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
-                    price,
+                    item.price,
                     style: GoogleFonts.poppins(
-                      color: const Color(0xFFFFB300),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: const Color(0xFF3F51B5),
                     ),
                   ),
-                  if (showViewButton) ...[
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => ItemDetailsScreen(
-                                title: title,
-                                price: price,
-                                status: status,
-                                imageUrls: [imageUrl],
-                              ),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3F51B5),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          'View',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                  if (showClaimButton) ...[
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                        ),
-                        child: const Text(
-                          'Claim',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -724,4 +453,185 @@ class _BrowseScreenState extends State<BrowseScreen> {
       ),
     );
   }
+
+  Color _getStatusColor(String condition) {
+    switch (condition.toLowerCase()) {
+      case 'working':
+        return Colors.green;
+      case 'needs repair':
+        return Colors.orange;
+      case 'for parts':
+        return const Color(0xFF3F51B5);
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Widget _buildListItems() {
+    if (_isLoadingListings) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_browseListings.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Text(
+            'No items from other users.\nTry changing the filter or check back later.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              color: Colors.grey,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: _browseListings.length,
+      itemBuilder: (context, index) {
+        final item = _browseListings[index];
+        return _buildBrowseListItem(item);
+      },
+    );
+  }
+
+  Widget _buildBrowseListItem(ListingItem item) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ItemDetailsScreen(
+              imageUrls: item.imageUrls,
+              title: item.title,
+              price: item.price,
+              status: item.condition,
+              sellerName: item.sellerName,
+              sellerAvatar: item.sellerAvatar,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
+              ),
+              child: Image.asset(
+                item.imageUrls.isNotEmpty ? item.imageUrls[0] : 'assets/images/gadget1.jpg',
+                width: 120,
+                height: 120,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 120,
+                    height: 120,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                  );
+                },
+              ),
+            ),
+            // Item Info
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              ListingsService().toggleFavoriteById(item.id);
+                            });
+                          },
+                          child: Icon(
+                            ListingsService().isFavorite(item.id) ? Icons.favorite : Icons.favorite_border,
+                            color: ListingsService().isFavorite(item.id) ? Colors.red : Colors.grey,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(item.condition).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        item.condition,
+                        style: TextStyle(
+                          color: _getStatusColor(item.condition),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      item.price,
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: const Color(0xFF3F51B5),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.location,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
+

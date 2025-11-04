@@ -244,4 +244,49 @@ class ListingsService {
 
     return favorites;
   }
+
+  // Get all marketplace listings (from all users)
+  Future<List<ListingItem>> getMarketplaceListings({
+    String? category,
+    String? condition,
+  }) async {
+    try {
+      final listings = await _dbService.getAllActiveListings(
+        category: category,
+        condition: condition,
+      );
+
+      return listings.map((listing) {
+        return ListingItem(
+          id: listing['id'].toString(),
+          title: listing['title'],
+          category: listing['category'],
+          condition: listing['condition'],
+          imageUrls: List<String>.from(listing['image_urls'] ?? []),
+          price: listing['price'],
+          location: listing['location'],
+          postDate: DateTime.parse(listing['created_at']),
+          status: listing['status'] ?? 'Active',
+          views: listing['views'] ?? 0,
+          messages: listing['messages'] ?? 0,
+          isFavorite: _favoriteItemIds.contains(listing['id'].toString()),
+          sellerName: listing['users']?['full_name'],
+          sellerAvatar: listing['users']?['profile_pic_url'],
+        );
+      }).toList();
+    } catch (e) {
+      print('Error getting marketplace listings: $e');
+      return [];
+    }
+  }
+
+  // Get listing details with seller info
+  Future<Map<String, dynamic>?> getListingDetails(String listingId) async {
+    try {
+      return await _dbService.getListingDetails(listingId);
+    } catch (e) {
+      print('Error getting listing details: $e');
+      return null;
+    }
+  }
 }

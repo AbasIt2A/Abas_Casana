@@ -1,3 +1,25 @@
+-- Drop existing policies if they exist (to allow re-running the script)
+DROP POLICY IF EXISTS "Users can view all listings" ON listings;
+DROP POLICY IF EXISTS "Users can insert their own listings" ON listings;
+DROP POLICY IF EXISTS "Users can update their own listings" ON listings;
+DROP POLICY IF EXISTS "Users can delete their own listings" ON listings;
+DROP POLICY IF EXISTS "Users can view their own favorites" ON favorites;
+DROP POLICY IF EXISTS "Users can insert their own favorites" ON favorites;
+DROP POLICY IF EXISTS "Users can delete their own favorites" ON favorites;
+DROP POLICY IF EXISTS "Users can view all user profiles" ON users;
+DROP POLICY IF EXISTS "Users can update their own profile" ON users;
+
+-- Create users table (for user profiles)
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone_number TEXT,
+  profile_pic_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create listings table
 CREATE TABLE IF NOT EXISTS listings (
   id BIGSERIAL PRIMARY KEY,
@@ -26,14 +48,25 @@ CREATE TABLE IF NOT EXISTS favorites (
 );
 
 -- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_users_id ON users(id);
 CREATE INDEX IF NOT EXISTS idx_listings_user_id ON listings(user_id);
 CREATE INDEX IF NOT EXISTS idx_listings_created_at ON listings(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON favorites(user_id);
 CREATE INDEX IF NOT EXISTS idx_favorites_item_id ON favorites(item_id);
 
 -- Enable Row Level Security
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE listings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for users table
+CREATE POLICY "Users can view all user profiles"
+  ON users FOR SELECT
+  USING (true);
+
+CREATE POLICY "Users can update their own profile"
+  ON users FOR UPDATE
+  USING (auth.uid() = id);
 
 -- Create policies for listings table
 CREATE POLICY "Users can view all listings"

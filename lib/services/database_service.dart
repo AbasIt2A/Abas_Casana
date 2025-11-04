@@ -153,6 +153,87 @@ class DatabaseService {
     }
   }
 
+  // Get all active listings from all users (marketplace view)
+  // Excludes current user's own listings
+  Future<List<Map<String, dynamic>>> getAllActiveListings({
+    String? category,
+    String? condition,
+    int limit = 50,
+  }) async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        return []; // No listings if not logged in
+      }
+
+      var query = _supabase
+          .from('listings')
+          .select('*')
+          .eq('status', 'Active')
+          .neq('user_id', currentUser.id); // Exclude current user's listings
+
+      if (category != null) {
+        query = query.eq('category', category);
+      }
+
+      if (condition != null) {
+        query = query.eq('condition', condition);
+      }
+
+      final response = await query
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      final listings = List<Map<String, dynamic>>.from(response);
+      
+      // Manually fetch user info for each listing
+      for (var listing in listings) {
+        final userId = listing['user_id'];
+        if (userId != null) {
+          final userProfile = await getUserProfile(userId);
+          listing['users'] = {
+            'full_name': userProfile?['full_name'],
+            'profile_pic_url': userProfile?['profile_pic_url'],
+          };
+        }
+      }
+
+      return listings;
+    } catch (e) {
+      print('Error getting all listings: $e');
+      return [];
+    }
+  }
+
+  // Get listing details with seller info
+  Future<Map<String, dynamic>?> getListingDetails(String listingId) async {
+    try {
+      final response = await _supabase
+          .from('listings')
+          .select('*')
+          .eq('id', listingId)
+          .single();
+
+      final listing = Map<String, dynamic>.from(response);
+      
+      // Fetch user info separately
+      final userId = listing['user_id'];
+      if (userId != null) {
+        final userProfile = await getUserProfile(userId);
+        listing['users'] = {
+          'full_name': userProfile?['full_name'],
+          'profile_pic_url': userProfile?['profile_pic_url'],
+          'phone_number': userProfile?['phone_number'],
+        };
+      }
+
+      return listing;
+    } catch (e) {
+      print('Error getting listing details: $e');
+      return null;
+    }
+  }
+
   // Update listing
   Future<void> updateListing({
     required String listingId,

@@ -20,6 +20,34 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  final ListingsService _listingsService = ListingsService();
+  List<ListingItem> _featuredListings = [];
+  bool _isLoadingListings = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFeaturedListings();
+  }
+
+  Future<void> _loadFeaturedListings() async {
+    setState(() {
+      _isLoadingListings = true;
+    });
+
+    try {
+      final listings = await _listingsService.getMarketplaceListings();
+      setState(() {
+        _featuredListings = listings.take(10).toList(); // Show first 10 items
+        _isLoadingListings = false;
+      });
+    } catch (e) {
+      print('Error loading featured listings: $e');
+      setState(() {
+        _isLoadingListings = false;
+      });
+    }
+  }
 
   void _onItemTapped(int index) async {
     if (index == 1) {
@@ -135,35 +163,48 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildCategoriesRow(),
                   const SizedBox(height: 24),
                   _buildSectionTitle('Featured Items'),
-                      _buildFeaturedItemCard(
-                    imageUrl: 'assets/images/gadget1.jpg',
-                    title: 'iPhone 12 - Cracked Screen',
-                    description: 'Screen broken, otherwise works fine',
-                    price: '\$85',
-                    status: 'Broken',
-                    statusColor: Colors.orange,
-                    time: '2h ago',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFeaturedItemCard(
-                    imageUrl: 'assets/images/gadget2.jpg',
-                    title: 'MacBook Pro 2018',
-                    description: 'Water damage, good for parts',
-                    price: '\$150',
-                    status: 'For Parts',
-                    statusColor: const Color(0xFF3F51B5),
-                    time: '5h ago',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFeaturedItemCard(
-                    imageUrl: 'assets/images/gadget3.jpg',
-                    title: 'Xbox Controller',
-                    description: 'Slightly worn but fully functional',
-                    price: '\$25',
-                    status: 'Working',
-                    statusColor: Colors.green,
-                    time: '1d ago',
-                  ),
+                  _isLoadingListings
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(32.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      : _featuredListings.isEmpty
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Text(
+                                  'No items from other users yet.\nCheck back later!',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Column(
+                              children: _featuredListings.map((item) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16.0),
+                                  child: _buildFeaturedItemCard(
+                                    imageUrl: item.imageUrls.isNotEmpty
+                                        ? item.imageUrls[0]
+                                        : 'assets/images/gadget1.jpg',
+                                    title: item.title,
+                                    description: '${item.condition} • ${item.location}',
+                                    price: item.price,
+                                    status: item.condition,
+                                    statusColor: _getStatusColor(item.condition),
+                                    time: item.formattedDate,
+                                    itemId: item.id,
+                                    sellerName: item.sellerName,
+                                    sellerAvatar: item.sellerAvatar,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -339,6 +380,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 
+  Color _getStatusColor(String condition) {
+    switch (condition.toLowerCase()) {
+      case 'working':
+        return Colors.green;
+      case 'needs repair':
+        return Colors.orange;
+      case 'for parts':
+        return const Color(0xFF3F51B5);
+      default:
+        return Colors.grey;
+    }
+  }
+
   Widget _buildFeaturedItemCard({
     required String imageUrl,
     required String title,
@@ -347,6 +401,9 @@ class _HomeScreenState extends State<HomeScreen> {
     required String status,
     required Color statusColor,
     required String time,
+    String? itemId,
+    String? sellerName,
+    String? sellerAvatar,
   }) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -359,6 +416,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: title,
                 price: price,
                 status: status,
+                sellerName: sellerName,
+                sellerAvatar: sellerAvatar,
               ),
             ),
           );
@@ -443,10 +502,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
-                          // Generate unique ID for featured items based on title
-                          final itemId =
-                              'featured_${title.replaceAll(' ', '_')}';
-                          ListingsService().toggleFavoriteById(itemId);
+                          // Use actual itemId or generate one for legacy items
+                          final String favoriteId = itemId ?? 'featured_${title.replaceAll(' ', '_')}';
+                          ListingsService().toggleFavoriteById(favoriteId);
                         });
                       },
                       child: Container(
@@ -457,13 +515,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Icon(
                           ListingsService().isFavorite(
-                                'featured_${title.replaceAll(' ', '_')}',
+                                itemId ?? 'featured_${title.replaceAll(' ', '_')}',
                               )
                               ? Icons.favorite
                               : Icons.favorite_border,
                           color:
                               ListingsService().isFavorite(
-                                'featured_${title.replaceAll(' ', '_')}',
+                                itemId ?? 'featured_${title.replaceAll(' ', '_')}',
                               )
                               ? Colors.red
                               : Colors.black,
