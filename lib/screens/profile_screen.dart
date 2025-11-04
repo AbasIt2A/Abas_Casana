@@ -230,8 +230,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     radius: 35,
                     backgroundImage: _userProfile?['profile_pic_url'] != null
                         ? NetworkImage(_userProfile!['profile_pic_url'])
-                        : const AssetImage('assets/images/ramon_profile.jpg') as ImageProvider,
+                        : null,
                     backgroundColor: Colors.grey[300],
+                    child: _userProfile?['profile_pic_url'] == null
+                        ? Icon(Icons.person, size: 40, color: Colors.grey[600])
+                        : null,
                   ),
                   Positioned(
                     bottom: 0,

@@ -87,11 +87,18 @@ class _BrowseScreenState extends State<BrowseScreen> {
             icon: const Icon(Icons.notifications_none, color: Colors.white),
             onPressed: () {},
           ),
-          const Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundImage: AssetImage('assets/images/profile.png'),
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.2),
+              ),
+              child: const CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.transparent,
+                child: Icon(Icons.person, color: Colors.white, size: 20),
+              ),
             ),
           ),
         ],

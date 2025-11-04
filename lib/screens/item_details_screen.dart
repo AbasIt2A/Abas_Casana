@@ -384,9 +384,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                 ),
                 child: CircleAvatar(
                   radius: 28,
-                  backgroundImage: widget.sellerAvatar != null
-                      ? AssetImage(widget.sellerAvatar!)
-                      : const AssetImage('assets/images/profile.png'),
+                  backgroundColor: Colors.grey[300],
+                  child: Icon(Icons.person, size: 30, color: Colors.grey[600]),
                 ),
               ),
               const SizedBox(width: 14),
