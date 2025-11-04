@@ -18,16 +18,106 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   final ListingsService _listingsService = ListingsService();
   List<ListingItem> _featuredListings = [];
   bool _isLoadingListings = true;
+  
+  // Animation controllers
+  late AnimationController _headerAnimationController;
+  late AnimationController _categoriesAnimationController;
+  late AnimationController _itemsAnimationController;
+  
+  late Animation<double> _headerFadeAnimation;
+  late Animation<Offset> _headerSlideAnimation;
+  late Animation<double> _categoriesFadeAnimation;
+  late Animation<Offset> _categoriesSlideAnimation;
+  late Animation<double> _itemsFadeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _setupAnimations();
     _loadFeaturedListings();
+  }
+  
+  void _setupAnimations() {
+    // Single smooth entrance animation for all content
+    _headerAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    
+    _headerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _headerAnimationController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    
+    _headerSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, -0.05),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _headerAnimationController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    
+    // Categories animation - subtle and quick
+    _categoriesAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+    
+    _categoriesFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _categoriesAnimationController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    
+    _categoriesSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.03),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _categoriesAnimationController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    
+    // Items animation - minimal movement
+    _itemsAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+    
+    _itemsFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _itemsAnimationController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    
+    // Start animations with minimal delays - almost simultaneous
+    _headerAnimationController.forward();
+    Future.delayed(const Duration(milliseconds: 50), () {
+      if (mounted) _categoriesAnimationController.forward();
+    });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) _itemsAnimationController.forward();
+    });
+  }
+  
+  @override
+  void dispose() {
+    _headerAnimationController.dispose();
+    _categoriesAnimationController.dispose();
+    _itemsAnimationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadFeaturedListings() async {
@@ -51,13 +141,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onItemTapped(int index) async {
     if (index == 1) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (context) => const BrowseScreen()));
+      Navigator.of(context).push(_createRoute(const BrowseScreen()));
     } else if (index == 2) {
-      final newItem = await Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (context) => const PostItemScreen()));
+      final newItem = await Navigator.of(context).push(_createRoute(const PostItemScreen()));
       if (newItem != null && newItem is ListingItem && mounted) {
         ListingsService().addListing(newItem);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -69,18 +155,40 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     } else if (index == 3) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (context) => const MessagesScreen()));
+      Navigator.of(context).push(_createRoute(const MessagesScreen()));
     } else if (index == 4) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (context) => const ProfileScreen()));
+      Navigator.of(context).push(_createRoute(const ProfileScreen()));
     } else {
       setState(() {
         _selectedIndex = index;
       });
     }
+  }
+  
+  Route _createRoute(Widget destination) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => destination,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.03, 0.0);
+        const end = Offset.zero;
+        const curve = Curves.easeOutCubic;
+        
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var offsetAnimation = animation.drive(tween);
+        
+        var fadeTween = Tween<double>(begin: 0.0, end: 1.0);
+        var fadeAnimation = animation.drive(fadeTween);
+        
+        return SlideTransition(
+          position: offsetAnimation,
+          child: FadeTransition(
+            opacity: fadeAnimation,
+            child: child,
+          ),
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 350),
+    );
   }
 
   @override
@@ -118,38 +226,44 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Find Your Next Gadget',
-                      style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+            FadeTransition(
+              opacity: _headerFadeAnimation,
+              child: SlideTransition(
+                position: _headerSlideAnimation,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Buy, sell, and discover electronics',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Find Your Next Gadget',
+                          style: GoogleFonts.poppins(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Buy, sell, and discover electronics',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildSearchBar(),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    _buildSearchBar(),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -158,53 +272,88 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('Categories'),
-                  const SizedBox(height: 16),
-                  _buildCategoriesRow(),
+                  FadeTransition(
+                    opacity: _categoriesFadeAnimation,
+                    child: SlideTransition(
+                      position: _categoriesSlideAnimation,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle('Categories'),
+                          const SizedBox(height: 16),
+                          _buildCategoriesRow(),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
-                  _buildSectionTitle('Featured Items'),
-                  _isLoadingListings
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(32.0),
-                            child: CircularProgressIndicator(),
-                          ),
-                        )
-                      : _featuredListings.isEmpty
-                          ? Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(32.0),
-                                child: Text(
-                                  'No items from other users yet.\nCheck back later!',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.grey,
-                                    fontSize: 16,
-                                  ),
+                  FadeTransition(
+                    opacity: _itemsFadeAnimation,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('Featured Items'),
+                        _isLoadingListings
+                            ? const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(32.0),
+                                  child: CircularProgressIndicator(),
                                 ),
-                              ),
-                            )
-                          : Column(
-                              children: _featuredListings.map((item) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 16.0),
-                                  child: _buildFeaturedItemCard(
-                                    imageUrl: item.imageUrls.isNotEmpty
-                                        ? item.imageUrls[0]
-                                        : 'assets/images/gadget1.jpg',
-                                    title: item.title,
-                                    description: '${item.condition} • ${item.location}',
-                                    price: item.price,
-                                    status: item.condition,
-                                    statusColor: _getStatusColor(item.condition),
-                                    time: item.formattedDate,
-                                    itemId: item.id,
-                                    sellerName: item.sellerName,
-                                    sellerAvatar: item.sellerAvatar,
+                              )
+                            : _featuredListings.isEmpty
+                                ? Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(32.0),
+                                      child: Text(
+                                        'No items from other users yet.\nCheck back later!',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.grey,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Column(
+                                    children: _featuredListings.asMap().entries.map((entry) {
+                                      final index = entry.key;
+                                      final item = entry.value;
+                                      return TweenAnimationBuilder<double>(
+                                        tween: Tween(begin: 0.0, end: 1.0),
+                                        duration: Duration(milliseconds: 350 + (index * 40)),
+                                        curve: Curves.easeOutCubic,
+                                        builder: (context, value, child) {
+                                          return Transform.translate(
+                                            offset: Offset(0, 8 * (1 - value)),
+                                            child: Opacity(
+                                              opacity: 0.3 + (0.7 * value),
+                                              child: child,
+                                            ),
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(bottom: 16.0),
+                                          child: _buildFeaturedItemCard(
+                                            imageUrl: item.imageUrls.isNotEmpty
+                                                ? item.imageUrls[0]
+                                                : 'assets/images/gadget1.jpg',
+                                            title: item.title,
+                                            description: '${item.condition} • ${item.location}',
+                                            price: item.price,
+                                            status: item.condition,
+                                            statusColor: _getStatusColor(item.condition),
+                                            time: item.formattedDate,
+                                            itemId: item.id,
+                                            sellerName: item.sellerName,
+                                            sellerAvatar: item.sellerAvatar,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
                                   ),
-                                );
-                              }).toList(),
-                            ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -338,41 +487,83 @@ class _HomeScreenState extends State<HomeScreen> {
     Color backgroundColor,
     Color iconColor,
   ) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: 0.3 + (0.7 * value),
+          child: Transform.translate(
+            offset: Offset(0, 5 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: _CategoryItemTappable(
+        icon: icon,
+        label: label,
+        backgroundColor: backgroundColor,
+        iconColor: iconColor,
+        onTap: () {
+          Navigator.of(context).push(_createRoute(
+            CategoryScreen(
+              category: label,
+              categoryColor: iconColor,
+              categoryIcon: icon,
+            ),
+          ));
+        },
+      ),
+    );
+  }
+
+  Widget _CategoryItemTappable({
+    required IconData icon,
+    required String label,
+    required Color backgroundColor,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => CategoryScreen(
-                category: label,
-                categoryColor: iconColor,
-                categoryIcon: icon,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOutCubic,
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: iconColor.withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: iconColor.withValues(alpha: 0.12),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, size: 28, color: iconColor),
               ),
-            ),
-          );
-        },
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: iconColor.withValues(alpha: 0.3), width: 1.5),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  color: Colors.grey[700],
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              child: Icon(icon, size: 28, color: iconColor),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                color: Colors.grey[700],
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -405,24 +596,26 @@ class _HomeScreenState extends State<HomeScreen> {
     String? sellerName,
     String? sellerAvatar,
   }) {
+    final heroTag = 'item_${itemId ?? title}_$imageUrl';
+    
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ItemDetailsScreen(
-                imageUrls: [imageUrl],
-                title: title,
-                price: price,
-                status: status,
-                sellerName: sellerName,
-                sellerAvatar: sellerAvatar,
-              ),
+          Navigator.of(context).push(_createRoute(
+            ItemDetailsScreen(
+              imageUrls: [imageUrl],
+              title: title,
+              price: price,
+              status: status,
+              sellerName: sellerName,
+              sellerAvatar: sellerAvatar,
             ),
-          );
+          ));
         },
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
@@ -440,37 +633,40 @@ class _HomeScreenState extends State<HomeScreen> {
               Stack(
                 children: [
                   // Image fills the top area without internal padding so the product itself is shown
-                  Container(
-                    height: 250,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[900],
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(15),
-                        topRight: Radius.circular(15),
+                  Hero(
+                    tag: heroTag,
+                    child: Container(
+                      height: 250,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900],
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(15),
+                          topRight: Radius.circular(15),
+                        ),
                       ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(15),
-                        topRight: Radius.circular(15),
-                      ),
-                      child: Center(
-                        child: Image.asset(
-                          imageUrl,
-                          height: 240,
-                          width: double.infinity,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[200],
-                              child: const Icon(
-                                Icons.image_not_supported,
-                                color: Colors.grey,
-                                size: 50,
-                              ),
-                            );
-                          },
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(15),
+                          topRight: Radius.circular(15),
+                        ),
+                        child: Center(
+                          child: Image.asset(
+                            imageUrl,
+                            height: 240,
+                            width: double.infinity,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.grey,
+                                  size: 50,
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),

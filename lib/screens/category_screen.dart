@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/listing_item.dart';
 import '../services/listings_service.dart';
 import 'item_details_screen.dart';
@@ -26,12 +27,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF3F51B5),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Row(
@@ -39,48 +40,98 @@ class _CategoryScreenState extends State<CategoryScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: widget.categoryColor.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 widget.categoryIcon,
-                color: widget.categoryColor,
+                color: Colors.white,
                 size: 20,
               ),
             ),
             const SizedBox(width: 12),
             Text(
               widget.category,
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
               ),
             ),
           ],
         ),
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.sort, color: Colors.black),
+            icon: const Icon(Icons.sort, color: Colors.white),
             onSelected: (value) {
               setState(() {
                 _sortBy = value;
               });
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'Recent', child: Text('Most Recent')),
-              const PopupMenuItem(
-                value: 'Price Low-High',
-                child: Text('Price: Low to High'),
+              PopupMenuItem(
+                value: 'Recent',
+                child: Text('Most Recent', style: GoogleFonts.poppins()),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
+                value: 'Price Low-High',
+                child: Text('Price: Low to High', style: GoogleFonts.poppins()),
+              ),
+              PopupMenuItem(
                 value: 'Price High-Low',
-                child: Text('Price: High to Low'),
+                child: Text('Price: High to Low', style: GoogleFonts.poppins()),
               ),
             ],
           ),
         ],
       ),
-      body: _buildProductList(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header section with gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF3F51B5), Color(0xFF303F9F)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 24.0),
+              child: Row(
+                children: [
+                  Icon(widget.categoryIcon, color: Colors.white, size: 32),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Browse ${widget.category}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Sorted by: $_sortBy',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(child: _buildProductList()),
+        ],
+      ),
     );
   }
 
@@ -98,21 +149,42 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
     if (allItems.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(widget.categoryIcon, size: 80, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text(
-              'No ${widget.category} available',
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Be the first to list an item!',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: widget.categoryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  widget.categoryIcon,
+                  size: 60,
+                  color: widget.categoryColor,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'No ${widget.category} available',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Be the first to list an item!',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -124,7 +196,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.7,
+        childAspectRatio: 0.65,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
@@ -290,14 +362,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -305,151 +375,145 @@ class _CategoryScreenState extends State<CategoryScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Image
-              Expanded(
-                flex: 3,
-                child: Stack(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
+              Stack(
+                children: [
+                  Container(
+                    height: 160,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[900],
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(15),
                       ),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
-                        child: item.imageUrls.isNotEmpty
-                            ? Image.asset(
-                                item.imageUrls[0],
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stack) {
-                                  return Center(
-                                    child: Icon(
-                                      Icons.image_not_supported,
-                                      color: Colors.grey[400],
-                                    ),
-                                  );
-                                },
-                              )
-                            : Center(
-                                child: Icon(
-                                  Icons.image_not_supported,
-                                  color: Colors.grey[400],
-                                ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(15),
+                      ),
+                      child: item.imageUrls.isNotEmpty
+                          ? Image.asset(
+                              item.imageUrls[0],
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stack) {
+                                return Center(
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey[400],
+                                    size: 40,
+                                  ),
+                                );
+                              },
+                            )
+                          : Center(
+                              child: Icon(
+                                Icons.image_not_supported,
+                                color: Colors.grey[400],
+                                size: 40,
                               ),
+                            ),
+                    ),
+                  ),
+                  // Condition badge
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getConditionColor(item.condition),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        item.condition,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                    // Condition badge
-                    Positioned(
-                      top: 8,
-                      left: 8,
+                  ),
+                  // Heart/Favorite icon
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _listingsService.toggleFavoriteById(item.id);
+                        });
+                      },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: _getConditionColor(item.condition),
-                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white.withValues(alpha: 0.7),
+                          shape: BoxShape.circle,
                         ),
-                        child: Text(
-                          item.condition,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Heart/Favorite icon
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _listingsService.toggleFavoriteById(item.id);
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _listingsService.isFavorite(item.id)
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: _listingsService.isFavorite(item.id)
-                                ? Colors.red
-                                : Colors.grey,
-                            size: 18,
-                          ),
+                        child: Icon(
+                          _listingsService.isFavorite(item.id)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: _listingsService.isFavorite(item.id)
+                              ? Colors.red
+                              : Colors.black,
+                          size: 18,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               // Details
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        item.title,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.price,
-                            style: const TextStyle(
-                              color: Colors.green,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          item.price,
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFFFFB300),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
                           ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 12,
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 14,
+                              color: Colors.grey[600],
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              item.location,
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
                                 color: Colors.grey[600],
                               ),
-                              const SizedBox(width: 2),
-                              Expanded(
-                                child: Text(
-                                  item.location,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey[600],
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -467,7 +531,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       case 'broken':
         return Colors.orange;
       case 'for parts':
-        return Colors.blue;
+        return const Color(0xFF3F51B5);
       default:
         return Colors.grey;
     }
