@@ -140,7 +140,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _onItemTapped(int index) async {
-    if (index == 1) {
+    if (index == 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+    } else if (index == 1) {
       Navigator.of(context).push(_createRoute(const BrowseScreen()));
     } else if (index == 2) {
       final newItem = await Navigator.of(context).push(_createRoute(const PostItemScreen()));
@@ -158,11 +162,209 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       Navigator.of(context).push(_createRoute(const MessagesScreen()));
     } else if (index == 4) {
       Navigator.of(context).push(_createRoute(const ProfileScreen()));
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
     }
+  }
+
+  Widget _buildModernBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(28),
+            topRight: Radius.circular(28),
+          ),
+          child: BottomAppBar(
+            elevation: 0,
+            color: Colors.transparent,
+            shape: const CircularNotchedRectangle(),
+            notchMargin: 10,
+            child: SizedBox(
+              height: 65,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(
+                      icon: Icons.home_rounded,
+                      label: 'Home',
+                      index: 0,
+                      isSelected: _selectedIndex == 0,
+                    ),
+                    _buildNavItem(
+                      icon: Icons.search_rounded,
+                      label: 'Browse',
+                      index: 1,
+                      isSelected: _selectedIndex == 1,
+                    ),
+                    const SizedBox(width: 60), // Space for FAB
+                    _buildNavItem(
+                      icon: Icons.chat_bubble_rounded,
+                      label: 'Message',
+                      index: 3,
+                      isSelected: _selectedIndex == 3,
+                    ),
+                    _buildNavItem(
+                      icon: Icons.person_rounded,
+                      label: 'Profile',
+                      index: 4,
+                      isSelected: _selectedIndex == 4,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
+    required bool isSelected,
+  }) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _onItemTapped(index),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TweenAnimationBuilder<double>(
+                  duration: const Duration(milliseconds: 250),
+                  tween: Tween<double>(begin: 1.0, end: isSelected ? 1.15 : 1.0),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, scale, child) {
+                    return Transform.scale(
+                      scale: scale,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: isSelected
+                              ? const LinearGradient(
+                                  colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                )
+                              : null,
+                          color: isSelected ? null : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: const Color(0xFFFFB300).withValues(alpha: 0.4),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Icon(
+                          icon,
+                          color: isSelected ? Colors.white : Colors.grey[600],
+                          size: 24,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 4),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color: isSelected ? const Color(0xFF3F51B5) : Colors.grey[600],
+                      letterSpacing: 0.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return Container(
+      width: 65,
+      height: 65,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF3F51B5), Color(0xFF5C6BC0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3F51B5).withValues(alpha: 0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: const Color(0xFFFFB300).withValues(alpha: 0.3),
+            blurRadius: 30,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _onItemTapped(2),
+          borderRadius: BorderRadius.circular(50),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white,
+                width: 3,
+              ),
+            ),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                child: const Icon(
+                  Icons.add_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
   
   Route _createRoute(Widget destination) {
@@ -361,32 +563,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Browse'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle, size: 40),
-            label: 'Sell',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message_outlined),
-            label: 'Message',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFFFFB300),
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        showUnselectedLabels: true,
-        backgroundColor: Colors.white,
-        elevation: 8,
-      ),
+      bottomNavigationBar: _buildModernBottomNav(),
+      floatingActionButton: _buildFloatingActionButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
