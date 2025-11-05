@@ -9,6 +9,9 @@ class ItemDetailsScreen extends StatefulWidget {
   final String status;
   final String? sellerName;
   final String? sellerAvatar;
+  final String? description;
+  final String? listingId;
+  final String? sellerId;
 
   const ItemDetailsScreen({
     super.key,
@@ -18,6 +21,9 @@ class ItemDetailsScreen extends StatefulWidget {
     required this.status,
     this.sellerName,
     this.sellerAvatar,
+    this.description,
+    this.listingId,
+    this.sellerId,
   });
 
   @override
@@ -39,6 +45,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     final int totalImages = widget.imageUrls.isNotEmpty
         ? widget.imageUrls.length
         : 1;
+    
+    // Remove ₱ symbol if already present in price
+    final displayPrice = widget.price.replaceFirst('₱', '').trim();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -86,7 +95,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildPriceAndCondition(),
+                  _buildPriceAndCondition(displayPrice),
                   const SizedBox(height: 20),
                   Text(
                     widget.title,
@@ -98,15 +107,14 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'iPhone 12 Pro 128GB in Space Gray. Screen is cracked but everything else works perfectly. Battery health at 85%. Comes with original charger and box. Perfect for parts or repair.',
+                    widget.description ?? 
+                    'No description provided for this item.',
                     style: GoogleFonts.poppins(
                       color: Colors.black54,
                       height: 1.6,
                       fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  _buildDetailsSection(),
                   const SizedBox(height: 24),
                   _buildSellerInfo(),
                 ],
@@ -115,7 +123,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomActionBar(),
+      bottomNavigationBar: _buildBottomActionBar(displayPrice),
     );
   }
 
@@ -209,7 +217,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     );
   }
 
-  Widget _buildPriceAndCondition() {
+  Widget _buildPriceAndCondition(String displayPrice) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -230,7 +238,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '₱${widget.price}',
+                  '₱$displayPrice',
                   style: GoogleFonts.poppins(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -280,68 +288,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDetailsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Specifications',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF3F51B5),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              _buildDetailRow('Brand', 'Apple'),
-              const Divider(height: 24),
-              _buildDetailRow('Model', 'iPhone 12 Pro'),
-              const Divider(height: 24),
-              _buildDetailRow('Storage', '128GB'),
-              const Divider(height: 24),
-              _buildDetailRow('Color', 'Space Gray'),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  static Widget _buildDetailRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 14),
-        ),
-        Text(
-          value,
-          style: GoogleFonts.poppins(
-            color: Colors.black87,
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-          ),
-        ),
-      ],
     );
   }
 
@@ -480,7 +426,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     );
   }
 
-  Widget _buildBottomActionBar() {
+  Widget _buildBottomActionBar(String displayPrice) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       decoration: BoxDecoration(
@@ -508,6 +454,14 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     builder: (context) => ChatDetailsScreen(
                       name: sellerName,
                       avatarUrl: sellerAvatar,
+                      itemTitle: widget.title,
+                      itemPrice: widget.price,
+                      itemImageUrl: widget.imageUrls.isNotEmpty 
+                          ? widget.imageUrls[0] 
+                          : null,
+                      itemStatus: widget.status,
+                      listingId: widget.listingId,
+                      sellerId: widget.sellerId,
                     ),
                   ),
                 );
@@ -542,7 +496,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                 foregroundColor: Colors.white,
               ),
               child: Text(
-                'Buy Now - ₱${widget.price}',
+                'Buy Now - ₱$displayPrice',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,

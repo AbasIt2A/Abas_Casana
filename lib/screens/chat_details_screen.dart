@@ -1,14 +1,31 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/database_service.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String name;
   final String avatarUrl;
+  final String? itemTitle;
+  final String? itemPrice;
+  final String? itemImageUrl;
+  final String? itemStatus;
+  final String? listingId;
+  final String? sellerId;
+  final String? conversationId; // Add this parameter
 
   const ChatDetailsScreen({
     super.key,
     required this.name,
     required this.avatarUrl,
+    this.itemTitle,
+    this.itemPrice,
+    this.itemImageUrl,
+    this.itemStatus,
+    this.listingId,
+    this.sellerId,
+    this.conversationId, // Add this parameter
   });
 
   @override
@@ -17,10 +34,255 @@ class ChatDetailsScreen extends StatefulWidget {
 
 class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final DatabaseService _databaseService = DatabaseService();
+  
+  List<Map<String, dynamic>> _messages = [];
+  bool _isLoading = true;
+  bool _isSending = false;
+  String? _conversationId;
+  String? _currentUserId;
+  Timer? _messagePollingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeChat();
+  }
+
+  Future<void> _initializeChat() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) {
+        print('ERROR: No user logged in');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please log in to view messages')),
+          );
+        }
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      _currentUserId = user.id;
+      print('=== CHAT INITIALIZATION ===');
+      print('Current User ID: $_currentUserId');
+      print('Current User Email: ${user.email}');
+      print('Widget conversationId: ${widget.conversationId}');
+      print('Widget listingId: ${widget.listingId}');
+      print('Widget sellerId: ${widget.sellerId}');
+      
+      // Use provided conversationId if available (from Messages screen)
+      // Otherwise generate it (from ItemDetails screen)
+      if (widget.conversationId != null && widget.conversationId!.isNotEmpty) {
+        _conversationId = widget.conversationId;
+        print('Using provided conversation ID: $_conversationId');
+      } else if (widget.sellerId != null && widget.listingId != null) {
+        _conversationId = _databaseService.generateConversationId(
+          widget.listingId!,
+          user.id,
+          widget.sellerId!,
+        );
+        print('Generated new conversation ID: $_conversationId');
+      } else {
+        print('ERROR: Cannot create conversation - missing sellerId or listingId');
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      await _loadMessages();
+      await _markMessagesAsRead();
+      
+      // Start polling for new messages every 3 seconds
+      _startMessagePolling();
+    } catch (e) {
+      print('Error initializing chat: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _startMessagePolling() {
+    _messagePollingTimer?.cancel();
+    print('=== POLLING SETUP ===');
+    print('Starting message polling for conversation: $_conversationId');
+    print('Current user ID: $_currentUserId');
+    print('Listing ID: ${widget.listingId}');
+    print('Seller ID: ${widget.sellerId}');
+    print('==================');
+    
+    _messagePollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (mounted && _conversationId != null) {
+        print('Polling for new messages... (Conversation: $_conversationId)');
+        final messages = await _databaseService.getConversationMessages(_conversationId!);
+        print('Poll result: ${messages.length} messages found');
+        
+        // Print all message IDs for debugging
+        for (var i = 0; i < messages.length; i++) {
+          print('  Message $i: "${messages[i]['message_text']}" from ${messages[i]['sender_id']}');
+        }
+        
+        if (mounted && messages.length != _messages.length) {
+          print('Message count changed! Old: ${_messages.length}, New: ${messages.length}');
+          setState(() {
+            _messages = messages;
+          });
+          _scrollToBottom();
+        }
+      } else {
+        print('Stopping message polling - screen disposed');
+        timer.cancel();
+      }
+    });
+  }
+
+  Future<void> _loadMessages() async {
+    if (_conversationId == null) {
+      print('ERROR: Cannot load messages - conversation ID is null');
+      return;
+    }
+
+    try {
+      final messages = await _databaseService.getConversationMessages(_conversationId!);
+      
+      // Only update if messages have changed
+      if (mounted) {
+        setState(() {
+          _messages = messages;
+          _isLoading = false;
+        });
+        
+        // Auto-scroll to bottom when new messages arrive
+        if (messages.isNotEmpty) {
+          _scrollToBottom();
+        }
+      }
+    } catch (e) {
+      print('Error loading messages: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _markMessagesAsRead() async {
+    if (_conversationId == null || _currentUserId == null) return;
+
+    try {
+      await _databaseService.markMessagesAsRead(_conversationId!, _currentUserId!);
+    } catch (e) {
+      print('Error marking messages as read: $e');
+    }
+  }
+
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+    
+    // Debug logging
+    print('=== SEND MESSAGE DEBUG ===');
+    print('Text: $text');
+    print('_isSending: $_isSending');
+    print('_currentUserId: $_currentUserId');
+    print('widget.sellerId: ${widget.sellerId}');
+    print('widget.listingId: ${widget.listingId}');
+    print('_conversationId: $_conversationId');
+    
+    if (text.isEmpty) {
+      print('ERROR: Message text is empty');
+      return;
+    }
+    
+    if (_isSending) {
+      print('ERROR: Already sending a message');
+      return;
+    }
+    
+    if (_currentUserId == null) {
+      print('ERROR: Current user ID is null');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: Not logged in')),
+      );
+      return;
+    }
+    
+    if (widget.sellerId == null) {
+      print('ERROR: Seller ID is null');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: Seller information missing')),
+      );
+      return;
+    }
+    
+    if (widget.listingId == null) {
+      print('ERROR: Listing ID is null');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: Item information missing')),
+      );
+      return;
+    }
+
+    setState(() => _isSending = true);
+
+    try {
+      print('Attempting to send message...');
+      
+      // Determine the receiver: if current user is the seller, receiver is the other user in conversation
+      // Otherwise, receiver is the seller
+      String receiverId;
+      if (_currentUserId == widget.sellerId) {
+        // Current user is the seller, so find the buyer from conversation ID
+        // Conversation ID format: listingId_userId1_userId2
+        final parts = _conversationId!.split('_');
+        if (parts.length == 3) {
+          // Get the other user ID (not the current user)
+          receiverId = parts[1] == _currentUserId ? parts[2] : parts[1];
+        } else {
+          throw Exception('Invalid conversation ID format');
+        }
+      } else {
+        // Current user is the buyer, receiver is the seller
+        receiverId = widget.sellerId!;
+      }
+      
+      print('Receiver ID determined: $receiverId');
+      
+      await _databaseService.sendMessage(
+        conversationId: _conversationId!,
+        senderId: _currentUserId!,
+        receiverId: receiverId,
+        listingId: widget.listingId!,
+        messageText: text,
+      );
+
+      print('Message sent successfully!');
+      _messageController.clear();
+      await _loadMessages();
+    } catch (e) {
+      print('Error sending message: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send message: $e')),
+      );
+    } finally {
+      setState(() => _isSending = false);
+    }
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _messagePollingTimer?.cancel();
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -33,32 +295,135 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         children: [
           _buildItemBanner(),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              children: [
-                _buildTimestamp('Today, 2:48 PM'),
-                const SizedBox(height: 12),
-                _buildChatBubble(
-                  text: 'I can do \$75. When would you like to pick it up?',
-                  isMe: true,
-                  time: '3:02 PM',
-                ),
-                const SizedBox(height: 12),
-                _buildChatBubble(
-                  text: 'Deal! How about tomorrow at 2 PM? I can meet you at the mall.',
-                  isMe: false,
-                  time: '3:03 PM',
-                ),
-                const SizedBox(height: 12),
-                _buildLocationBubble(),
-                const SizedBox(height: 12),
-                _buildActionButtons(),
-                const SizedBox(height: 20),
-              ],
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _messages.isEmpty
+                    ? _buildEmptyState()
+                    : _buildMessagesList(),
           ),
           _buildMessageComposer(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMessagesList() {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(16),
+      itemCount: _messages.length,
+      itemBuilder: (context, index) {
+        final message = _messages[index];
+        final senderId = message['sender_id']?.toString();
+        final currentId = _currentUserId?.toString();
+        final isMe = senderId != null && currentId != null && senderId == currentId;
+        final timestamp = DateTime.parse(message['created_at']);
+        
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (!isMe) ...[
+                CircleAvatar(
+                  radius: 14,
+                  backgroundImage: NetworkImage(widget.avatarUrl),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isMe ? const Color(0xFF3F51B5) : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 5,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        message['message_text'],
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: isMe ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatTimestamp(timestamp),
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isMe) const SizedBox(width: 50),
+              if (!isMe) const SizedBox(width: 50),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    } else {
+      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+    }
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.chat_bubble_outline,
+              size: 80,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Start the conversation',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Send a message about "${widget.itemTitle ?? 'this item'}"',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -152,6 +517,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }
 
   Widget _buildItemBanner() {
+    final displayImage = widget.itemImageUrl ?? 'assets/images/gadget1.jpg';
+    final displayTitle = widget.itemTitle ?? 'Item';
+    final displayPrice = widget.itemPrice?.replaceFirst('₱', '').trim() ?? '0';
+    final displayStatus = widget.itemStatus ?? 'For Sale';
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 20.0),
       padding: const EdgeInsets.all(14.0),
@@ -189,7 +559,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12.0),
               child: Image.asset(
-                'assets/images/gadget1.jpg',
+                displayImage,
                 width: 70,
                 height: 70,
                 fit: BoxFit.contain,
@@ -209,7 +579,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'iPhone 11 - Cracked Screen',
+                  displayTitle,
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -228,7 +598,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '\$85',
+                        '₱$displayPrice',
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -255,274 +625,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
               ],
             ),
             child: Text(
-              'For Sale',
+              displayStatus,
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
                 fontSize: 11,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChatBubble({
-    required String text,
-    required bool isMe,
-    required String time,
-  }) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Column(
-        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.75,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            decoration: BoxDecoration(
-              color: isMe ? const Color(0xFF3F51B5) : Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(18),
-                topRight: const Radius.circular(18),
-                bottomLeft: Radius.circular(isMe ? 18 : 4),
-                bottomRight: Radius.circular(isMe ? 4 : 18),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isMe 
-                    ? const Color(0xFF3F51B5).withValues(alpha: 0.3)
-                    : Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                color: isMe ? Colors.white : Colors.black87,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                height: 1.4,
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              time,
-              style: GoogleFonts.poppins(
-                color: Colors.grey[500],
-                fontSize: 11,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimestamp(String time) {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          time,
-          style: GoogleFonts.poppins(
-            color: Colors.grey[700],
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLocationBubble() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.75,
-            ),
-            padding: const EdgeInsets.all(14.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFB300),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-                bottomRight: Radius.circular(4),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFFB300).withValues(alpha: 0.3),
-                  blurRadius: 8,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.location_on, color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Westfield Mall',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Tomorrow 2:00 PM',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              '3:05 PM',
-              style: GoogleFonts.poppins(
-                color: Colors.grey[500],
-                fontSize: 11,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(left: 8, right: 6),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: const Color(0xFF3F51B5),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3F51B5).withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {},
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.local_offer_outlined, 
-                          color: Color(0xFF3F51B5), size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Make Offer',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF3F51B5),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(left: 6, right: 8),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFFB300).withValues(alpha: 0.4),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {},
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.check_circle_outline, 
-                          color: Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Confirm Meet',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ),
             ),
           ),
@@ -634,8 +741,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 ],
               ),
               child: IconButton(
-                icon: const Icon(Icons.send_rounded, color: Colors.white, size: 22),
-                onPressed: () {},
+                icon: Icon(Icons.send_rounded, 
+                  color: _isSending ? Colors.white.withOpacity(0.5) : Colors.white, 
+                  size: 22),
+                onPressed: _isSending ? null : _sendMessage,
               ),
             ),
           ],

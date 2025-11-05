@@ -555,6 +555,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                             itemId: item.id,
                                             sellerName: item.sellerName,
                                             sellerAvatar: item.sellerAvatar,
+                                            itemDescription: item.description,
+                                            sellerId: item.sellerId,
                                           ),
                                         ),
                                       );
@@ -781,6 +783,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     String? itemId,
     String? sellerName,
     String? sellerAvatar,
+    String? itemDescription,
+    String? sellerId,
   }) {
     final heroTag = 'item_${itemId ?? title}_$imageUrl';
     
@@ -796,6 +800,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               status: status,
               sellerName: sellerName,
               sellerAvatar: sellerAvatar,
+              description: itemDescription,
+              listingId: itemId,
+              sellerId: sellerId,
             ),
           ));
         },

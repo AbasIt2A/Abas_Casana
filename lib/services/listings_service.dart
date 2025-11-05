@@ -76,6 +76,7 @@ class ListingsService {
           views: listing['views'] ?? 0,
           messages: listing['messages'] ?? 0,
           isFavorite: false,
+          description: listing['description'],
         ));
       }
     } catch (e) {
@@ -110,6 +111,7 @@ class ListingsService {
         imageUrls: item.imageUrls,
         price: item.price,
         location: item.location,
+        description: item.description,
         status: item.status,
       );
 
@@ -128,6 +130,7 @@ class ListingsService {
           views: item.views,
           messages: item.messages,
           isFavorite: item.isFavorite,
+          description: item.description,
         );
         
         _userListings.insert(0, updatedItem); // Add to the beginning
@@ -172,6 +175,7 @@ class ListingsService {
         views: item.views,
         messages: item.messages,
         isFavorite: !item.isFavorite,
+        description: item.description,
       );
     }
   }
@@ -272,6 +276,8 @@ class ListingsService {
           isFavorite: _favoriteItemIds.contains(listing['id'].toString()),
           sellerName: listing['users']?['full_name'],
           sellerAvatar: listing['users']?['profile_pic_url'],
+          description: listing['description'],
+          sellerId: listing['user_id']?.toString(),
         );
       }).toList();
     } catch (e) {

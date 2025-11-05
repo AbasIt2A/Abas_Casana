@@ -17,6 +17,7 @@ class PostItemScreen extends StatefulWidget {
 class _PostItemScreenState extends State<PostItemScreen> {
   final _formKey = GlobalKey<FormState>();
   final _itemNameController = TextEditingController();
+  final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _locationController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
@@ -28,6 +29,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
   @override
   void dispose() {
     _itemNameController.dispose();
+    _descriptionController.dispose();
     _priceController.dispose();
     _locationController.dispose();
     super.dispose();
@@ -70,6 +72,16 @@ class _PostItemScreenState extends State<PostItemScreen> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Description'),
+                TextFormField(
+                  controller: _descriptionController,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    hintText: 'Describe your item (condition, features, etc.)',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 _buildSectionTitle('Category *'),
@@ -366,6 +378,9 @@ class _PostItemScreenState extends State<PostItemScreen> {
           : '₱${_priceController.text.trim()}',
       location: _locationController.text.trim(),
       postDate: DateTime.now(),
+      description: _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim(),
     );
 
     // Return to previous screen with the new item

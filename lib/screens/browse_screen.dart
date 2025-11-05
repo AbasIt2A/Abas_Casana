@@ -349,6 +349,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
               status: item.condition,
               sellerName: item.sellerName,
               sellerAvatar: item.sellerAvatar,
+              description: item.description,
+              listingId: item.id,
+              sellerId: item.sellerId,
             ),
           ),
         );
@@ -531,6 +534,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
               status: item.condition,
               sellerName: item.sellerName,
               sellerAvatar: item.sellerAvatar,
+              description: item.description,
+              listingId: item.id,
+              sellerId: item.sellerId,
             ),
           ),
         );

@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS listings (
   image_urls TEXT[] DEFAULT '{}',
   price TEXT NOT NULL,
   location TEXT NOT NULL,
+  description TEXT,
   status TEXT DEFAULT 'Active',
   views INTEGER DEFAULT 0,
   messages INTEGER DEFAULT 0,

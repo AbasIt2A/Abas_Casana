@@ -14,6 +14,8 @@ class ListingItem {
   final bool isFavorite;
   final String? sellerName;
   final String? sellerAvatar;
+  final String? description;
+  final String? sellerId;
 
   ListingItem({
     required this.id,
@@ -30,6 +32,8 @@ class ListingItem {
     this.isFavorite = false,
     this.sellerName,
     this.sellerAvatar,
+    this.description,
+    this.sellerId,
   });
 
   String get formattedDate {
