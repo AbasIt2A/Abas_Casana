@@ -3,7 +3,9 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/listing_item.dart';
+import '../services/database_service.dart';
 
 enum Condition { working, needsRepair, forParts }
 
@@ -21,10 +23,13 @@ class _PostItemScreenState extends State<PostItemScreen> {
   final _priceController = TextEditingController();
   final _locationController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
+  final DatabaseService _dbService = DatabaseService();
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   Condition? _selectedCondition;
   String? _selectedCategory;
   List<XFile> _selectedImages = [];
+  bool _isPosting = false;
 
   @override
   void dispose() {
@@ -352,7 +357,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     }
   }
 
-  void _handlePostItem() {
+  void _handlePostItem() async {
     // Validate form
     if (!_formKey.currentState!.validate()) {
       return;
@@ -366,32 +371,144 @@ class _PostItemScreenState extends State<PostItemScreen> {
       return;
     }
 
-    // Create listing item
-    final newItem = ListingItem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _itemNameController.text.trim(),
-      category: _selectedCategory!,
-      condition: _getConditionString(),
-      imageUrls: _selectedImages.map((file) => file.path).toList(),
-      price: _priceController.text.trim().isEmpty
-          ? 'Free'
-          : '₱${_priceController.text.trim()}',
-      location: _locationController.text.trim(),
-      postDate: DateTime.now(),
-      description: _descriptionController.text.trim().isEmpty
-          ? null
-          : _descriptionController.text.trim(),
-    );
+    // Get current user
+    final currentUser = _supabase.auth.currentUser;
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must be logged in to post')),
+      );
+      return;
+    }
 
-    // Return to previous screen with the new item
-    Navigator.pop(context, newItem);
+    setState(() {
+      _isPosting = true;
+    });
+
+    try {
+      // Generate temporary listing ID
+      final tempListingId = DateTime.now().millisecondsSinceEpoch.toString();
+      
+      // Upload images to Supabase storage if any
+      List<String> imageUrls = [];
+      if (_selectedImages.isNotEmpty) {
+        print('Starting image upload for ${_selectedImages.length} images...');
+        try {
+          // Upload each image using XFile directly (avoids File namespace issues)
+          for (int i = 0; i < _selectedImages.length; i++) {
+            final xFile = _selectedImages[i];
+            final fileName = '${tempListingId}_$i.jpg';
+            
+            print('Reading image $i: ${xFile.path}');
+            
+            // Read bytes directly from XFile (works across platforms)
+            final bytes = await xFile.readAsBytes();
+            print('Image $i size: ${bytes.length} bytes');
+            
+            // Upload to Supabase
+            print('Uploading $fileName...');
+            await _supabase.storage
+                .from('listing-images')
+                .uploadBinary(
+                  fileName,
+                  bytes,
+                  fileOptions: const FileOptions(
+                    upsert: true,
+                    contentType: 'image/jpeg',
+                  ),
+                );
+            
+            print('Successfully uploaded: $fileName');
+            
+            // Get public URL
+            final String downloadUrl = _supabase.storage
+                .from('listing-images')
+                .getPublicUrl(fileName);
+            
+            print('Public URL: $downloadUrl');
+            imageUrls.add(downloadUrl);
+          }
+          
+          print('Upload completed. URLs received: ${imageUrls.length}');
+          if (imageUrls.isEmpty) {
+            throw Exception('No images were uploaded successfully');
+          }
+          print('Successfully uploaded ${imageUrls.length} images');
+        } catch (uploadError) {
+          print('Image upload error: $uploadError');
+          throw Exception('Failed to upload images: $uploadError');
+        }
+      }
+
+      // Create listing in database
+      print('Creating listing in database...');
+      final listingId = await _dbService.createListing(
+        userId: currentUser.id,
+        title: _itemNameController.text.trim(),
+        category: _selectedCategory!,
+        condition: _getConditionString(),
+        imageUrls: imageUrls,
+        price: _priceController.text.trim().isEmpty
+            ? 'Free'
+            : '₱${_priceController.text.trim()}',
+        location: _locationController.text.trim(),
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
+      );
+
+      if (listingId == null) {
+        throw Exception('Failed to create listing in database');
+      }
+
+      print('Successfully created listing with ID: $listingId');
+
+      // Create listing item object to return
+      final newItem = ListingItem(
+        id: listingId,
+        title: _itemNameController.text.trim(),
+        category: _selectedCategory!,
+        condition: _getConditionString(),
+        imageUrls: imageUrls,
+        price: _priceController.text.trim().isEmpty
+            ? 'Free'
+            : '₱${_priceController.text.trim()}',
+        location: _locationController.text.trim(),
+        postDate: DateTime.now(),
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
+      );
+
+      if (mounted) {
+        // Return to previous screen with the new item
+        Navigator.pop(context, newItem);
+      }
+    } catch (e) {
+      print('ERROR posting item: $e');
+      print('Error type: ${e.runtimeType}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPosting = false;
+        });
+      }
+    }
   }
 
   Widget _buildPostButton() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
-        onPressed: _handlePostItem,
+        onPressed: _isPosting ? null : _handlePostItem,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF0D63F3),
           foregroundColor: Colors.white,
@@ -400,10 +517,19 @@ class _PostItemScreenState extends State<PostItemScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: const Text(
-          'Post Item',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+        child: _isPosting
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Text(
+                'Post Item',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
       ),
     );
   }

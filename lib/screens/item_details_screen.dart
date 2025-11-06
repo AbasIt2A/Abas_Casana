@@ -145,17 +145,43 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               final imageUrl = widget.imageUrls.isNotEmpty
                   ? widget.imageUrls[index]
                   : 'assets/images/image_placeholder.png';
-              return Image.asset(
-                imageUrl,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.image_not_supported,
-                    size: 100,
-                    color: Colors.grey,
-                  );
-                },
-              );
+              
+              // Check if it's a URL or local asset
+              final isNetworkImage = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+              
+              return isNetworkImage
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.image_not_supported,
+                          size: 100,
+                          color: Colors.grey,
+                        );
+                      },
+                    )
+                  : Image.asset(
+                      imageUrl,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.image_not_supported,
+                          size: 100,
+                          color: Colors.grey,
+                        );
+                      },
+                    );
             },
           ),
           Positioned(

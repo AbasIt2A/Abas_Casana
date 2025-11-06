@@ -383,19 +383,48 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   ),
                   child: ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                    child: Image.asset(
-                      item.imageUrls.isNotEmpty ? item.imageUrls[0] : 'assets/images/gadget1.jpg',
-                      height: 140,
-                      width: double.infinity,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 140,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 50),
-                        );
-                      },
-                    ),
+                    child: () {
+                      final imageUrl = item.imageUrls.isNotEmpty ? item.imageUrls[0] : 'assets/images/gadget1.jpg';
+                      final isNetworkImage = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+                      
+                      return isNetworkImage
+                          ? Image.network(
+                              imageUrl,
+                              height: 140,
+                              width: double.infinity,
+                              fit: BoxFit.contain,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 140,
+                                  color: Colors.grey[200],
+                                  child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 50),
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              imageUrl,
+                              height: 140,
+                              width: double.infinity,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 140,
+                                  color: Colors.grey[200],
+                                  child: const Icon(Icons.image_not_supported, color: Colors.grey, size: 50),
+                                );
+                              },
+                            );
+                    }(),
                   ),
                 ),
                 Positioned(
@@ -572,20 +601,50 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   topLeft: Radius.circular(12),
                   bottomLeft: Radius.circular(12),
                 ),
-                child: Image.asset(
-                  item.imageUrls.isNotEmpty ? item.imageUrls[0] : 'assets/images/gadget1.jpg',
-                  width: 120,
-                  height: 120,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 120,
-                      height: 120,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.image_not_supported, color: Colors.grey),
-                    );
-                  },
-                ),
+                child: () {
+                  final imageUrl = item.imageUrls.isNotEmpty ? item.imageUrls[0] : 'assets/images/gadget1.jpg';
+                  final isNetworkImage = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+                  
+                  return isNetworkImage
+                      ? Image.network(
+                          imageUrl,
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 120,
+                              height: 120,
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                            );
+                          },
+                        )
+                      : Image.asset(
+                          imageUrl,
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 120,
+                              height: 120,
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                            );
+                          },
+                        );
+                }(),
               ),
             ),
             // Item Info

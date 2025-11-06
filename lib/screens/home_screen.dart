@@ -844,22 +844,53 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           topRight: Radius.circular(15),
                         ),
                         child: Center(
-                          child: Image.asset(
-                            imageUrl,
-                            height: 240,
-                            width: double.infinity,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[200],
-                                child: const Icon(
-                                  Icons.image_not_supported,
-                                  color: Colors.grey,
-                                  size: 50,
-                                ),
-                              );
-                            },
-                          ),
+                          child: () {
+                            final isNetworkImage = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+                            
+                            return isNetworkImage
+                                ? Image.network(
+                                    imageUrl,
+                                    height: 240,
+                                    width: double.infinity,
+                                    fit: BoxFit.contain,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          value: loadingProgress.expectedTotalBytes != null
+                                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                              : null,
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey[200],
+                                        child: const Icon(
+                                          Icons.image_not_supported,
+                                          color: Colors.grey,
+                                          size: 50,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Image.asset(
+                                    imageUrl,
+                                    height: 240,
+                                    width: double.infinity,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey[200],
+                                        child: const Icon(
+                                          Icons.image_not_supported,
+                                          color: Colors.grey,
+                                          size: 50,
+                                        ),
+                                      );
+                                    },
+                                  );
+                          }(),
                         ),
                       ),
                     ),

@@ -16,6 +16,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final DatabaseService _dbService = DatabaseService();
+  final ListingsService _listingsService = ListingsService();
   Map<String, dynamic>? _userProfile;
   bool _isLoading = true;
 
@@ -289,11 +290,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildStatsRow() {
+    // Get the actual sold count from listings service
+    final soldCount = _listingsService.getCountByStatus('Sold');
+    
     return Row(
       children: [
-        _buildStatCard('12', 'Items Sold', const Color(0xFF3F51B5)),
+        _buildStatCard(soldCount.toString(), 'Items Sold', const Color(0xFF3F51B5)),
         const SizedBox(width: 16),
-        _buildStatCard('8', 'Items Bought', const Color(0xFFFFB300)),
+        _buildStatCard('0', 'Items Bought', const Color(0xFFFFB300)),
       ],
     );
   }

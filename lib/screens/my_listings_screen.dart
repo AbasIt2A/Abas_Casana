@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/listings_service.dart';
+import '../services/database_service.dart';
 
 class MyListingsScreen extends StatefulWidget {
   const MyListingsScreen({super.key});
@@ -15,11 +16,18 @@ class _MyListingsScreenState extends State<MyListingsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ListingsService _listingsService = ListingsService();
+  final DatabaseService _dbService = DatabaseService();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
+  }
+
+  // Reload listings from database
+  Future<void> _loadListings() async {
+    await _listingsService.initialize();
+    setState(() {});
   }
 
   @override
@@ -837,7 +845,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: isActive
-                  ? _buildActiveButtons()
+                  ? _buildActiveButtons(itemId: itemId)
                   : isSold
                       ? _buildSoldButtons()
                       : _buildDonatedButtons(),
@@ -876,14 +884,40 @@ class _MyListingsScreenState extends State<MyListingsScreen>
     );
   }
 
-  Widget _buildActiveButtons() {
+  Widget _buildActiveButtons({String? itemId}) {
     return Row(
       children: [
         Expanded(
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {},
+              onTap: itemId == null ? null : () async {
+                // Mark item as sold
+                try {
+                  await _dbService.updateListingStatus(itemId, 'Sold');
+                  setState(() {
+                    // Refresh the listings
+                    _loadListings();
+                  });
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Item marked as sold!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
               borderRadius: BorderRadius.circular(14),
               child: Ink(
                 decoration: BoxDecoration(

@@ -303,10 +303,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        _buildDivider(),
-                        const SizedBox(height: 24),
-                        _buildSocialLogin(),
                         const SizedBox(height: 28),
                         _buildSignupLink(context),
                       ],
@@ -343,26 +339,6 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
       // AuthWrapper will handle navigation on success
-    } on AuthException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message), backgroundColor: Colors.redAccent),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  void _signInWithGoogle() async {
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      await authService.signInWithGoogle();
     } on AuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -450,70 +426,6 @@ class _LoginScreenState extends State<LoginScreen> {
           contentPadding: const EdgeInsets.symmetric(
             vertical: 18,
             horizontal: 12,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            'or continue with',
-            style: GoogleFonts.poppins(
-              color: Colors.grey[600],
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
-      ],
-    );
-  }
-
-  Widget _buildSocialLogin() {
-    return Center(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: ElevatedButton.icon(
-          onPressed: _isLoading ? null : _signInWithGoogle,
-          icon: Image.asset('assets/images/google.png', height: 24.0),
-          label: Text(
-            'Sign in with Google',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-              fontSize: 15,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.black87,
-            backgroundColor: Colors.white,
-            minimumSize: const Size(double.infinity, 56),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.grey.shade300, width: 1.5),
-            ),
-            elevation: 0,
           ),
         ),
       ),

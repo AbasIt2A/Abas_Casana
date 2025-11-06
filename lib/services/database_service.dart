@@ -55,6 +55,68 @@ class DatabaseService {
     }
   }
 
+  // Upload listing images and get URLs
+  Future<List<String>> uploadListingImages(List<String> imagePaths, String listingId) async {
+    final List<String> imageUrls = [];
+    
+    for (int i = 0; i < imagePaths.length; i++) {
+      try {
+        final imagePath = imagePaths[i];
+        final fileName = '${listingId}_$i.jpg';
+        final filePath = fileName;
+
+        print('Uploading image $i: $fileName');
+        print('Image path: $imagePath');
+        
+        // Read file bytes directly from path
+        final file = File(imagePath);
+        
+        // Verify file exists
+        if (!await file.exists()) {
+          print('ERROR: File does not exist: $imagePath');
+          continue;
+        }
+        
+        // Read file bytes
+        final bytes = await file.readAsBytes();
+        print('File size: ${bytes.length} bytes');
+        
+        // Upload the file to Supabase Storage
+        final response = await _supabase.storage
+            .from('listing-images')
+            .uploadBinary(
+              filePath,
+              bytes,
+              fileOptions: const FileOptions(
+                upsert: true,
+                contentType: 'image/jpeg',
+              ),
+            );
+
+        print('Upload response: $response');
+        print('Successfully uploaded: $fileName');
+
+        // Get the public URL
+        final String downloadUrl = _supabase.storage
+            .from('listing-images')
+            .getPublicUrl(filePath);
+
+        print('Public URL: $downloadUrl');
+        imageUrls.add(downloadUrl);
+      } catch (e, stackTrace) {
+        print('Error uploading image $i: $e');
+        print('Stack trace: $stackTrace');
+        // Continue with next image instead of failing completely
+      }
+    }
+    
+    if (imageUrls.isEmpty && imagePaths.isNotEmpty) {
+      throw Exception('Failed to upload any images. Check console logs for details.');
+    }
+    
+    return imageUrls;
+  }
+
   // Get user profile
   Future<Map<String, dynamic>?> getUserProfile(String userId) async {
     try {
@@ -263,6 +325,19 @@ class DatabaseService {
       await _supabase.from('listings').update(updateData).eq('id', listingId);
     } catch (e) {
       print('Error updating listing: $e');
+      rethrow;
+    }
+  }
+
+  // Update listing status (e.g., mark as sold)
+  Future<void> updateListingStatus(String listingId, String newStatus) async {
+    try {
+      await _supabase.from('listings').update({
+        'status': newStatus,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', listingId);
+    } catch (e) {
+      print('Error updating listing status: $e');
       rethrow;
     }
   }
