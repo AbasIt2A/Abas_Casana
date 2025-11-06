@@ -6,6 +6,7 @@ import 'edit_profile_screen.dart';
 import '../services/auth_services.dart';
 import '../services/database_service.dart';
 import '../services/listings_service.dart';
+import '../widgets/profile_avatar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -28,11 +29,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     try {
+      print('=== PROFILE SCREEN: Loading user profile ===');
       final profile = await _dbService.getCurrentUserProfile();
+      print('Profile data: $profile');
+      print('Profile pic URL from profile: ${profile?['profile_pic_url']}');
+      
       setState(() {
         _userProfile = profile;
         _isLoading = false;
       });
+      
+      print('Profile screen state updated');
     } catch (e) {
       print('Error loading user profile: $e');
       setState(() {
@@ -211,13 +218,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.white, size: 24),
-                onPressed: () {
-                  Navigator.push(
+                onPressed: () async {
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const EditProfileScreen(),
                     ),
                   );
+                  // Reload profile after returning from edit screen
+                  print('=== RETURNED FROM EDIT PROFILE - RELOADING ===');
+                  _loadUserProfile();
                 },
               ),
             ],
@@ -227,15 +237,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Stack(
                 children: [
-                  CircleAvatar(
-                    radius: 35,
-                    backgroundImage: _userProfile?['profile_pic_url'] != null
-                        ? NetworkImage(_userProfile!['profile_pic_url'])
-                        : null,
-                    backgroundColor: Colors.grey[300],
-                    child: _userProfile?['profile_pic_url'] == null
-                        ? Icon(Icons.person, size: 40, color: Colors.grey[600])
-                        : null,
+                  ProfileAvatar(
+                    imageUrl: _userProfile?['profile_pic_url'],
+                    userName: _userProfile?['full_name'],
+                    size: 70,
+                    showBorder: true,
+                    borderColor: const Color(0xFFFFB300),
+                    borderWidth: 3,
                   ),
                   Positioned(
                     bottom: 0,

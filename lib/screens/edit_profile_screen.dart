@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -21,7 +21,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   bool _isLoading = false;
   String? _currentImageUrl;
-  File? _newProfileImage;
+  XFile? _newProfileImage; // Changed from File to XFile
 
   @override
   void initState() {
@@ -29,22 +29,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _loadUserProfile();
   }
 
+  String? _userEmail;
+
   Future<void> _loadUserProfile() async {
     setState(() => _isLoading = true);
     try {
       final userData = await _dbService.getCurrentUserProfile();
+      final user = _authService.getCurrentUser();
+      
+      print('=== LOADING USER PROFILE ===');
+      print('User data retrieved: ${userData != null}');
+      
       if (userData != null) {
+        print('Full name: ${userData['full_name']}');
+        print('Phone: ${userData['phone_number']}');
+        print('Profile pic URL: ${userData['profile_pic_url']}');
+        
         setState(() {
           _fullNameController.text = userData['full_name'] ?? '';
           _phoneController.text = userData['phone_number'] ?? '';
           _currentImageUrl = userData['profile_pic_url'];
+          _userEmail = user?.email;
         });
+        
+        print('Current image URL set to: $_currentImageUrl');
       }
     } catch (e) {
       print('Error loading profile: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Error loading profile')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Error loading profile')));
+      }
     } finally {
       setState(() => _isLoading = false);
     }
@@ -52,19 +68,53 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickImage() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
+      // Show dialog to choose camera or gallery
+      final source = await showDialog<ImageSource>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(
+            'Choose Image Source',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF3F51B5)),
+                title: Text('Camera', style: GoogleFonts.poppins()),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: Color(0xFF3F51B5)),
+                title: Text('Gallery', style: GoogleFonts.poppins()),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
       );
+      
+      if (source == null) return;
+      
+      final XFile? image = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      
       if (image != null) {
         setState(() {
-          _newProfileImage = File(image.path);
+          _newProfileImage = image; // Store XFile directly
         });
       }
     } catch (e) {
       print('Error picking image: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Error selecting image')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Error selecting image')));
+      }
     }
   }
 
@@ -85,18 +135,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       String? newImageUrl;
       if (_newProfileImage != null) {
+        print('=== UPLOADING PROFILE PICTURE ===');
+        print('User ID: ${user.id}');
+        print('Image path: ${_newProfileImage!.path}');
+        
         newImageUrl = await _dbService.uploadProfilePicture(
           _newProfileImage!,
           user.id,
         );
+        
+        print('Upload result: $newImageUrl');
+        if (newImageUrl == null) {
+          print('ERROR: Upload returned null!');
+        } else {
+          print('SUCCESS: Got URL: $newImageUrl');
+        }
       }
+
+      final finalImageUrl = newImageUrl ?? _currentImageUrl;
+      print('=== UPDATING USER PROFILE ===');
+      print('Final image URL to save: $finalImageUrl');
 
       await _dbService.updateUserProfile(
         userId: user.id,
         fullName: _fullNameController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
-        profilePicUrl: newImageUrl ?? _currentImageUrl,
+        profilePicUrl: finalImageUrl,
       );
+
+      print('Profile update completed successfully!');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -212,6 +279,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     keyboardType: TextInputType.phone,
                     icon: Icons.phone_outlined,
                   ),
+                  const SizedBox(height: 20),
+                  _buildEmailDisplay(),
                   if (!_authService.isEmailVerified()) ...[
                     const SizedBox(height: 32),
                     _buildVerifyEmailButton(),
@@ -248,21 +317,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   offset: const Offset(0, 8),
                 ),
               ],
-              image: _newProfileImage != null
-                  ? DecorationImage(
-                      image: FileImage(_newProfileImage!),
-                      fit: BoxFit.cover,
+            ),
+            child: ClipOval(
+              child: _newProfileImage != null
+                  ? FutureBuilder<Uint8List>(
+                      future: _newProfileImage!.readAsBytes(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Image.memory(
+                            snapshot.data!,
+                            fit: BoxFit.cover,
+                            width: 140,
+                            height: 140,
+                          );
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
                     )
                   : _currentImageUrl != null
-                  ? DecorationImage(
-                      image: NetworkImage(_currentImageUrl!),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
+                      ? Image.network(
+                          _currentImageUrl!,
+                          fit: BoxFit.cover,
+                          width: 140,
+                          height: 140,
+                        )
+                      : Icon(Icons.person_outline, size: 70, color: Colors.grey[400]),
             ),
-            child: (_newProfileImage == null && _currentImageUrl == null)
-                ? Icon(Icons.person_outline, size: 70, color: Colors.grey[400])
-                : null,
           ),
           Positioned(
             bottom: 4,
@@ -366,6 +446,120 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 vertical: 18,
                 horizontal: 12,
               ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmailDisplay() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          child: Text(
+            'Email',
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF3F51B5),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade300, width: 1.5),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF3F51B5).withValues(alpha: 0.1),
+                        const Color(0xFFFFB300).withValues(alpha: 0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.email_outlined,
+                    color: Color(0xFF3F51B5),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _userEmail ?? 'No email',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      if (!_authService.isEmailVerified())
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              size: 14,
+                              color: Colors.orange.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Not verified',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.orange.shade700,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.verified,
+                              size: 14,
+                              color: Colors.green.shade600,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Verified',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.green.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),

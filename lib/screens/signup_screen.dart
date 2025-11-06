@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,7 +27,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _agreeToTerms = false;
   String _selectedCountryCode = '+1';
   bool _isLoading = false;
-  File? _profileImage;
+  XFile? _profileImage; // Changed from File to XFile
 
   Future<void> _pickImage() async {
     try {
@@ -36,7 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       if (image != null) {
         setState(() {
-          _profileImage = File(image.path);
+          _profileImage = image; // Store XFile directly
         });
       }
     } catch (e) {
@@ -411,20 +411,29 @@ class _SignupScreenState extends State<SignupScreen> {
                   color: const Color(0xFFFFB300),
                   width: 3,
                 ),
-                image: _profileImage != null
-                    ? DecorationImage(
-                        image: FileImage(_profileImage!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
               ),
-              child: _profileImage == null
-                  ? Icon(
-                      Icons.person_outline,
-                      size: 50,
-                      color: Colors.grey[400],
-                    )
-                  : null,
+              child: ClipOval(
+                child: _profileImage != null
+                    ? FutureBuilder<Uint8List>(
+                        future: _profileImage!.readAsBytes(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return Image.memory(
+                              snapshot.data!,
+                              fit: BoxFit.cover,
+                              width: 100,
+                              height: 100,
+                            );
+                          }
+                          return const Center(child: CircularProgressIndicator());
+                        },
+                      )
+                    : Icon(
+                        Icons.person_outline,
+                        size: 50,
+                        color: Colors.grey[400],
+                      ),
+              ),
             ),
             Positioned(
               bottom: 2,

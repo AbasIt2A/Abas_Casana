@@ -8,8 +8,9 @@ import 'messages_screen.dart';
 import 'post_item_screen.dart';
 import 'profile_screen.dart';
 import '../models/listing_item.dart';
-// auth_services import removed (not used in HomeScreen AppBar anymore)
 import '../services/listings_service.dart';
+import '../services/database_service.dart';
+import '../widgets/profile_avatar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,8 +22,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   final ListingsService _listingsService = ListingsService();
+  final DatabaseService _dbService = DatabaseService();
   List<ListingItem> _featuredListings = [];
   bool _isLoadingListings = true;
+  Map<String, dynamic>? _userProfile;
   
   // Animation controllers
   late AnimationController _headerAnimationController;
@@ -40,6 +43,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _setupAnimations();
     _loadFeaturedListings();
+    _loadUserProfile();
+  }
+  
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload profile when widget updates
+    _loadUserProfile();
+  }
+  
+  Future<void> _loadUserProfile() async {
+    try {
+      print('=== HOME SCREEN: Loading user profile ===');
+      final profile = await _dbService.getCurrentUserProfile();
+      print('Profile data: $profile');
+      print('Profile pic URL: ${profile?['profile_pic_url']}');
+      
+      if (mounted) {
+        setState(() {
+          _userProfile = profile;
+        });
+        print('Home screen profile state updated');
+        print('ProfileAvatar will show: ${_userProfile?['profile_pic_url'] ?? "initials"}');
+      }
+    } catch (e) {
+      print('Error loading user profile: $e');
+    }
   }
   
   void _setupAnimations() {
@@ -149,7 +179,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } else if (index == 2) {
       final newItem = await Navigator.of(context).push(_createRoute(const PostItemScreen()));
       if (newItem != null && newItem is ListingItem && mounted) {
-        ListingsService().addListing(newItem);
+        // Item is already saved to database in PostItemScreen
+        // Just reload the listings to show the new item
+        await _loadFeaturedListings();
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Item posted successfully! View it in My Listings.'),
@@ -416,15 +449,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.2),
-              ),
-              child: const CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.transparent,
-                child: Icon(Icons.person, color: Colors.white, size: 20),
+            child: GestureDetector(
+              onTap: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                );
+                // Reload profile when returning from profile screen
+                print('=== RETURNED TO HOME SCREEN - RELOADING PROFILE ===');
+                _loadUserProfile();
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.2),
+                  border: Border.all(
+                    color: const Color(0xFFFFB300),
+                    width: 2,
+                  ),
+                ),
+                child: ProfileAvatar(
+                  imageUrl: _userProfile?['profile_pic_url'],
+                  userName: _userProfile?['full_name'],
+                  size: 36,
+                  showBorder: false,
+                ),
               ),
             ),
           ),

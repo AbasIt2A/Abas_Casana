@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DatabaseService {
@@ -29,28 +30,43 @@ class DatabaseService {
   }
 
   // Upload profile picture and get URL
-  Future<String?> uploadProfilePicture(File imageFile, String userId) async {
+  Future<String?> uploadProfilePicture(XFile imageFile, String userId) async {
     try {
       final fileName = '$userId.jpg';
-      final filePath = 'profile_pictures/$fileName';
+      final filePath = fileName; // Store in root of bucket
 
-      // Upload the file to Supabase Storage
-      await _supabase.storage
+      print('Uploading profile picture: $fileName');
+      print('Image path: ${imageFile.path}');
+
+      // Read file bytes directly from XFile (works on web and mobile)
+      final bytes = await imageFile.readAsBytes();
+      print('File size: ${bytes.length} bytes');
+
+      // Upload the file to Supabase Storage using uploadBinary
+      final response = await _supabase.storage
           .from('profile-pictures')
-          .upload(
+          .uploadBinary(
             filePath,
-            imageFile,
-            fileOptions: const FileOptions(upsert: true),
+            bytes,
+            fileOptions: const FileOptions(
+              upsert: true,
+              contentType: 'image/jpeg',
+            ),
           );
+
+      print('Upload response: $response');
+      print('Successfully uploaded: $fileName');
 
       // Get the public URL
       final String downloadUrl = _supabase.storage
           .from('profile-pictures')
           .getPublicUrl(filePath);
 
+      print('Public URL: $downloadUrl');
       return downloadUrl;
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error uploading profile picture: $e');
+      print('Stack trace: $stackTrace');
       return null;
     }
   }
