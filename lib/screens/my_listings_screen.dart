@@ -21,7 +21,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   // Reload listings from database
@@ -68,7 +68,6 @@ class _MyListingsScreenState extends State<MyListingsScreen>
               _buildListingList(),
               _buildListingList(filter: 'Active'),
               _buildListingList(filter: 'Sold'),
-              _buildListingList(filter: 'Wishlist'),
               _buildListingList(filter: 'Hidden'),
             ],
           ),
@@ -366,7 +365,6 @@ class _MyListingsScreenState extends State<MyListingsScreen>
             Tab(text: 'All (${_listingsService.totalCount})'),
             Tab(text: 'Active (${_listingsService.getCountByStatus('Active')})'),
             Tab(text: 'Sold (${_listingsService.getCountByStatus('Sold')})'),
-            Tab(text: 'Wishlist (${_listingsService.favoriteCount})'),
             Tab(text: 'Hidden (${_listingsService.getCountByStatus('Hidden')})'),
           ],
         ),
@@ -507,26 +505,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
 
     // Add user's posted items first
     for (var item in _listingsService.userListings) {
-      if (filter == 'Wishlist') {
-        // Only show favorite items in Wishlist tab
-        if (item.isFavorite) {
-          listingCards.add(
-            _buildListingCard(
-              imageUrl: item.imageUrls.isNotEmpty
-                  ? item.imageUrls[0]
-                  : 'assets/images/gadget1.jpg',
-              title: item.title,
-              postDate: item.formattedDate,
-              price: item.price,
-              views: '${item.views} views • ${item.messages} messages',
-              status: item.status,
-              isUserPosted: true,
-              isFavorite: item.isFavorite,
-              itemId: item.id,
-            ),
-          );
-        }
-      } else if (filter == null ||
+      if (filter == null ||
           (filter == 'Active' && item.status == 'Active') ||
           (filter == 'Sold' && item.status == 'Sold') ||
           (filter == 'Hidden' && item.status == 'Hidden')) {

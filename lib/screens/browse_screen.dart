@@ -44,6 +44,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
         categoryFilter = 'Phones';
       } else if (selectedFilter == 'Laptops') {
         categoryFilter = 'Laptops';
+      } else if (selectedFilter == 'Appliances') {
+        categoryFilter = 'Appliances';
+      } else if (selectedFilter == 'Accessories') {
+        categoryFilter = 'Accessories';
       }
 
       final listings = await _listingsService.getMarketplaceListings(
@@ -247,6 +251,8 @@ class _BrowseScreenState extends State<BrowseScreen> {
       'For Parts',
       'Phones',
       'Laptops',
+      'Appliances',
+      'Accessories',
     ];
     return SizedBox(
       height: 40,

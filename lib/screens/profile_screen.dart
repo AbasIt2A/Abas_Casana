@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'my_listings_screen.dart';
-import 'my_purchases_screen.dart';
+import 'saved_items_screen.dart';
 import 'edit_profile_screen.dart';
 import '../services/auth_services.dart';
 import '../services/database_service.dart';
@@ -92,15 +92,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     _buildListTile(
-                      icon: Icons.shopping_bag_outlined,
-                      title: 'My Purchases',
-                      subtitle: 'Track your orders',
-                      trailingText: '2 Recent',
-                      trailingColor: Colors.blue,
+                      icon: Icons.favorite_border,
+                      title: 'Saved Items',
+                      subtitle: 'Your favorited items',
+                      trailingText: '${_listingsService.favoriteCount} Saved',
+                      trailingColor: Colors.pink,
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => const MyPurchasesScreen(),
+                            builder: (context) => const SavedItemsScreen(),
                           ),
                         );
                       },
@@ -301,56 +301,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Get the actual sold count from listings service
     final soldCount = _listingsService.getCountByStatus('Sold');
     
-    return Row(
-      children: [
-        _buildStatCard(soldCount.toString(), 'Items Sold', const Color(0xFF3F51B5)),
-        const SizedBox(width: 16),
-        _buildStatCard('0', 'Items Bought', const Color(0xFFFFB300)),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(String count, String label, Color backgroundColor) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [backgroundColor, backgroundColor.withValues(alpha: 0.7)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [const Color(0xFF3F51B5), const Color(0xFF3F51B5).withValues(alpha: 0.7)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3F51B5).withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: backgroundColor.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            soldCount.toString(),
+            style: GoogleFonts.poppins(
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Text(
-              count,
-              style: GoogleFonts.poppins(
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Items Sold',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

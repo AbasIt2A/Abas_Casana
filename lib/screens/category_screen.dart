@@ -23,6 +23,37 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final ListingsService _listingsService = ListingsService();
   String _sortBy = 'Recent'; // Recent, Price Low-High, Price High-Low
+  List<ListingItem> _categoryListings = [];
+  bool _isLoadingListings = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategoryListings();
+  }
+
+  Future<void> _loadCategoryListings() async {
+    setState(() {
+      _isLoadingListings = true;
+    });
+
+    try {
+      // Get marketplace listings for this category (other users only, no hardcoded items)
+      final listings = await _listingsService.getMarketplaceListings(
+        category: widget.category,
+      );
+
+      setState(() {
+        _categoryListings = listings;
+        _isLoadingListings = false;
+      });
+    } catch (e) {
+      print('Error loading category listings: $e');
+      setState(() {
+        _isLoadingListings = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,18 +167,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 
   Widget _buildProductList() {
-    // Get all listings (user + sample data)
-    final userListings = _listingsService.userListings
-        .where((item) => item.category == widget.category)
-        .toList();
+    if (_isLoadingListings) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
-    // Sample data for each category
-    final sampleData = _getSampleDataForCategory();
-
-    // Combine and sort
-    final allItems = [...userListings, ...sampleData];
-
-    if (allItems.isEmpty) {
+    if (_categoryListings.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
@@ -177,7 +206,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Be the first to list an item!',
+                'Check back later for new items!',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -190,7 +219,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
     }
 
     // Apply sorting
-    _sortItems(allItems);
+    _sortItems(_categoryListings);
 
     return GridView.builder(
       padding: const EdgeInsets.all(16),
@@ -200,119 +229,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
-      itemCount: allItems.length,
+      itemCount: _categoryListings.length,
       itemBuilder: (context, index) {
-        final item = allItems[index];
+        final item = _categoryListings[index];
         return _buildProductCard(item);
       },
     );
-  }
-
-  List<ListingItem> _getSampleDataForCategory() {
-    switch (widget.category) {
-      case 'Phones':
-        return [
-          ListingItem(
-            id: 'sample_phone_1',
-            title: 'iPhone 12 - Cracked Screen',
-            category: 'Phones',
-            condition: 'Broken',
-            imageUrls: ['assets/images/gadget1.jpg'],
-            price: '₱85',
-            location: 'Manila',
-            postDate: DateTime.now().subtract(const Duration(hours: 2)),
-            status: 'Active',
-          ),
-          ListingItem(
-            id: 'sample_phone_2',
-            title: 'Samsung Galaxy S20',
-            category: 'Phones',
-            condition: 'Working',
-            imageUrls: ['assets/images/gadget1.jpg'],
-            price: '₱150',
-            location: 'Quezon City',
-            postDate: DateTime.now().subtract(const Duration(days: 1)),
-            status: 'Active',
-          ),
-        ];
-      case 'Laptops':
-        return [
-          ListingItem(
-            id: 'sample_laptop_1',
-            title: 'MacBook Pro 2018',
-            category: 'Laptops',
-            condition: 'For Parts',
-            imageUrls: ['assets/images/gadget2.jpg'],
-            price: '₱150',
-            location: 'Makati',
-            postDate: DateTime.now().subtract(const Duration(hours: 5)),
-            status: 'Active',
-          ),
-          ListingItem(
-            id: 'sample_laptop_2',
-            title: 'Dell XPS 13',
-            category: 'Laptops',
-            condition: 'Working',
-            imageUrls: ['assets/images/gadget2.jpg'],
-            price: '₱200',
-            location: 'Pasig',
-            postDate: DateTime.now().subtract(const Duration(days: 2)),
-            status: 'Active',
-          ),
-        ];
-      case 'Appliances':
-        return [
-          ListingItem(
-            id: 'sample_appliance_1',
-            title: 'Electric Fan',
-            category: 'Appliances',
-            condition: 'Working',
-            imageUrls: ['assets/images/gadget3.jpg'],
-            price: '₱50',
-            location: 'Taguig',
-            postDate: DateTime.now().subtract(const Duration(hours: 12)),
-            status: 'Active',
-          ),
-          ListingItem(
-            id: 'sample_appliance_2',
-            title: 'Microwave Oven',
-            category: 'Appliances',
-            condition: 'Needs Repair',
-            imageUrls: ['assets/images/gadget3.jpg'],
-            price: '₱75',
-            location: 'Manila',
-            postDate: DateTime.now().subtract(const Duration(days: 3)),
-            status: 'Active',
-          ),
-        ];
-      case 'Accessories':
-        return [
-          ListingItem(
-            id: 'sample_accessory_1',
-            title: 'Xbox Controller',
-            category: 'Accessories',
-            condition: 'Working',
-            imageUrls: ['assets/images/gadget3.jpg'],
-            price: '₱25',
-            location: 'Pasay',
-            postDate: DateTime.now().subtract(const Duration(days: 1)),
-            status: 'Active',
-          ),
-          ListingItem(
-            id: 'sample_accessory_2',
-            title: 'Wireless Mouse',
-            category: 'Accessories',
-            condition: 'Working',
-            imageUrls: ['assets/images/gadget3.jpg'],
-            price: '₱30',
-            location: 'Mandaluyong',
-            postDate: DateTime.now().subtract(const Duration(hours: 8)),
-            status: 'Active',
-          ),
-        ];
-      default:
-        return [];
-    }
   }
 
   void _sortItems(List<ListingItem> items) {
@@ -390,27 +312,62 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(15),
                       ),
-                      child: item.imageUrls.isNotEmpty
-                          ? Image.asset(
-                              item.imageUrls[0],
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stack) {
-                                return Center(
-                                  child: Icon(
-                                    Icons.image_not_supported,
-                                    color: Colors.grey[400],
-                                    size: 40,
-                                  ),
-                                );
-                              },
-                            )
-                          : Center(
-                              child: Icon(
-                                Icons.image_not_supported,
-                                color: Colors.grey[400],
-                                size: 40,
-                              ),
+                      child: () {
+                        if (item.imageUrls.isEmpty) {
+                          return Center(
+                            child: Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey[400],
+                              size: 40,
                             ),
+                          );
+                        }
+                        
+                        final imageUrl = item.imageUrls[0];
+                        final isNetworkImage = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+                        
+                        return isNetworkImage
+                            ? Image.network(
+                                imageUrl,
+                                height: 160,
+                                width: double.infinity,
+                                fit: BoxFit.contain,
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      value: loadingProgress.expectedTotalBytes != null
+                                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                          : null,
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Center(
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      color: Colors.grey[400],
+                                      size: 40,
+                                    ),
+                                  );
+                                },
+                              )
+                            : Image.asset(
+                                imageUrl,
+                                height: 160,
+                                width: double.infinity,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Center(
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      color: Colors.grey[400],
+                                      size: 40,
+                                    ),
+                                  );
+                                },
+                              );
+                      }(),
                     ),
                   ),
                   // Condition badge
