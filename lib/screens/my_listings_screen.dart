@@ -26,8 +26,10 @@ class _MyListingsScreenState extends State<MyListingsScreen>
 
   // Reload listings from database
   Future<void> _loadListings() async {
-    await _listingsService.initialize();
-    setState(() {});
+    await _listingsService.initialize(forceReload: true);
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -45,28 +47,17 @@ class _MyListingsScreenState extends State<MyListingsScreen>
     }
   }
 
-  // Reload when returning to this screen
+  // Called when the route is resumed (when navigating back to this screen)
   @override
-  void didUpdateWidget(MyListingsScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload listings when returning to this screen
     _loadListings();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Reload listings whenever this screen is built (e.g., after posting a new item)
-    // This ensures the count is always up-to-date
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadListings();
-    });
-    
-    return WillPopScope(
-      onWillPop: () async {
-        // When navigating back, trigger a rebuild
-        setState(() {});
-        return true;
-      },
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: Colors.grey[50],
         body: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -93,8 +84,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildModernAppBar(bool innerBoxIsScrolled) {

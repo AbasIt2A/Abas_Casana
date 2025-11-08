@@ -31,7 +31,7 @@ class ListingsService {
   }
 
   // Initialize and load data from database
-  Future<void> initialize() async {
+  Future<void> initialize({bool forceReload = false}) async {
     final user = _supabase.auth.currentUser;
     
     // If no user is logged in, clear data
@@ -40,8 +40,8 @@ class ListingsService {
       return;
     }
     
-    // If already initialized for this user, skip
-    if (_isInitialized && _currentUserId == user.id) {
+    // If already initialized for this user and not forcing reload, skip
+    if (_isInitialized && _currentUserId == user.id && !forceReload) {
       return;
     }
     

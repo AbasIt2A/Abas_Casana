@@ -30,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _initializeListingsService() async {
     try {
-      await _listingsService.initialize();
+      await _listingsService.initialize(forceReload: true);
       setState(() {
         // Trigger rebuild after listings are loaded
       });
