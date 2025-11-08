@@ -8,8 +8,18 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // Wrap everything in a try-catch to prevent crashes
   try {
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // Add error handling for Flutter framework errors
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      print('Flutter Error: ${details.exception}');
+      print('Stack trace: ${details.stack}');
+    };
+    
+    print('Starting Supabase initialization...');
     // Initialize Supabase
     await Supabase.initialize(
       url: 'https://abesvjbwyaywhpdnnykq.supabase.co',
@@ -18,18 +28,54 @@ void main() async {
     );
     print('Supabase initialized successfully');
     
-    // Initialize ListingsService to load user data
-    await ListingsService().initialize();
-    print('ListingsService initialized');
-    
+    print('Starting app...');
     runApp(const MyApp());
-  } catch (e) {
-    print('Error initializing app: $e');
-    // Show error widget if initialization fails
+  } catch (e, stackTrace) {
+    print('CRITICAL ERROR: $e');
+    print('Stack trace: $stackTrace');
+    
+    // Run a minimal error app
     runApp(
       MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: Scaffold(
-          body: Center(child: Text('Failed to initialize app: $e')),
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 80, color: Colors.red),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'App Error',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      e.toString(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Try to restart
+                        main();
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -42,13 +88,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PartSmart',
+      title: 'Mobile Marketplace',
       theme: ThemeData(
-        primarySwatch: Colors.green,
+        primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Inter',
+        useMaterial3: true,
       ),
-      home: const AuthWrapper(), // Use AuthWrapper as the home
+      home: const AuthWrapper(),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -76,11 +122,50 @@ class _AuthWrapperState extends State<AuthWrapper> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
+        
+        // Check for errors
+        if (snapshot.hasError) {
+          print("Auth stream error: ${snapshot.error}");
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Authentication Error',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${snapshot.error}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {}); // Retry
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        
         // Check if user data exists (logged in)
         if (snapshot.hasData && snapshot.data?.session != null) {
           print("User is logged in: ${snapshot.data?.session?.user.id}");
           // Initialize listings service for the logged-in user
-          ListingsService().initialize();
+          ListingsService().initialize().catchError((e) {
+            print("Error initializing ListingsService: $e");
+          });
           return const HomeScreen(); // Show Home screen if logged in
         }
         // User is logged out
