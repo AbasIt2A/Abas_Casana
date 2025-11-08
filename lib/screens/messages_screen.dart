@@ -17,11 +17,19 @@ class _MessagesScreenState extends State<MessagesScreen> {
   List<Map<String, dynamic>> _conversations = [];
   bool _isLoading = true;
   int _totalUnreadCount = 0;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _loadConversations();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadConversations() async {
@@ -197,35 +205,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
           ),
         ],
       ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFFB300), Color(0xFFFF8C00)],
-          ),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFFFB300).withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: () {},
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          icon: const Icon(Icons.add_comment, color: Colors.white, size: 22),
-          label: Text(
-            'New',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -248,39 +227,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
               onPressed: () => Navigator.of(context).pop(),
             ),
-          ),
-          Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.search, color: Colors.white, size: 20),
-                  onPressed: () {},
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.add, color: Colors.white, size: 20),
-                  onPressed: () {},
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -320,19 +266,38 @@ class _MessagesScreenState extends State<MessagesScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
+              controller: _searchController,
               style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
               decoration: InputDecoration(
                 hintText: 'Search conversations...',
                 hintStyle: GoogleFonts.poppins(
-                  color: Colors.grey[400],
+                  color: Colors.grey[500],
                   fontSize: 14,
                 ),
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
             ),
           ),
+          if (_searchQuery.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _searchController.clear();
+                  _searchQuery = '';
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Icon(Icons.clear, color: Colors.grey[600], size: 20),
+              ),
+            ),
         ],
       ),
     );
@@ -480,9 +445,24 @@ class _MessagesScreenState extends State<MessagesScreen> {
     }
 
     // Filter conversations based on selected tab
-    final filteredConversations = _showOnlyUnread
+    var filteredConversations = _showOnlyUnread
         ? _conversations.where((conv) => (conv['unread_count'] as int) > 0).toList()
         : _conversations;
+
+    // Apply search filter
+    if (_searchQuery.isNotEmpty) {
+      filteredConversations = filteredConversations.where((conv) {
+        final otherUser = conv['other_user'] as Map<String, dynamic>?;
+        final listing = conv['listing'] as Map<String, dynamic>?;
+        final name = (otherUser?['full_name'] ?? '').toString().toLowerCase();
+        final message = (conv['last_message'] ?? '').toString().toLowerCase();
+        final itemTitle = (listing?['title'] ?? '').toString().toLowerCase();
+        
+        return name.contains(_searchQuery) ||
+               message.contains(_searchQuery) ||
+               itemTitle.contains(_searchQuery);
+      }).toList();
+    }
 
     final unreadCount = _conversations
         .where((conv) => (conv['unread_count'] as int) > 0)
@@ -563,29 +543,44 @@ class _MessagesScreenState extends State<MessagesScreen> {
               child: Column(
                 children: [
                   Icon(
-                    Icons.inbox_outlined,
+                    _searchQuery.isNotEmpty ? Icons.search_off : Icons.inbox_outlined,
                     size: 80,
                     color: Colors.grey[300],
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _showOnlyUnread ? 'No unread messages' : 'No messages yet',
+                    _searchQuery.isNotEmpty
+                        ? 'No results found'
+                        : (_showOnlyUnread ? 'No unread messages' : 'No messages yet'),
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey[600],
+                      color: Colors.grey[700],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _showOnlyUnread
-                        ? 'All caught up!'
-                        : 'Start a conversation to see messages here',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.grey[500],
+                  if (_searchQuery.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'Try searching with different keywords',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                      ),
                     ),
-                  ),
+                  if (_searchQuery.isEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      _showOnlyUnread
+                          ? 'All caught up!'
+                          : 'Start a conversation to see messages here',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -596,9 +591,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
             final listing = conv['listing'] as Map<String, dynamic>?;
             final unreadCount = conv['unread_count'] as int;
             
-            // Determine who is the seller (listing owner) and who is the buyer
+            // Determine who is the seller (listing owner)
             final sellerId = listing?['user_id']?.toString();
-            final otherUserId = otherUser?['id']?.toString();
             
             // Format timestamp
             String timeAgo = 'Unknown';

@@ -17,11 +17,19 @@ class _BrowseScreenState extends State<BrowseScreen> {
   final ListingsService _listingsService = ListingsService();
   List<ListingItem> _browseListings = [];
   bool _isLoadingListings = true;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _loadBrowseListings();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadBrowseListings() async {
@@ -162,6 +170,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
+              controller: _searchController,
               style: GoogleFonts.poppins(fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Search electronics...',
@@ -170,8 +179,23 @@ class _BrowseScreenState extends State<BrowseScreen> {
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
             ),
           ),
+          if (_searchQuery.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _searchController.clear();
+                  _searchQuery = '';
+                });
+              },
+              child: const Icon(Icons.clear, color: Colors.grey, size: 20),
+            ),
         ],
       ),
     );
@@ -308,17 +332,39 @@ class _BrowseScreenState extends State<BrowseScreen> {
       );
     }
 
-    if (_browseListings.isEmpty) {
+    // Filter listings based on search query
+    final filteredListings = _searchQuery.isEmpty
+        ? _browseListings
+        : _browseListings.where((item) {
+            return item.title.toLowerCase().contains(_searchQuery) ||
+                item.category.toLowerCase().contains(_searchQuery) ||
+                item.condition.toLowerCase().contains(_searchQuery) ||
+                (item.description?.toLowerCase().contains(_searchQuery) ?? false);
+          }).toList();
+
+    if (filteredListings.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
-          child: Text(
-            'No items from other users.\nTry changing the filter or check back later.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              color: Colors.grey,
-              fontSize: 16,
-            ),
+          child: Column(
+            children: [
+              Icon(
+                _searchQuery.isEmpty ? Icons.inventory_2_outlined : Icons.search_off,
+                size: 64,
+                color: Colors.grey[400],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _searchQuery.isEmpty
+                    ? 'No items from other users.\nTry changing the filter or check back later.'
+                    : 'No results found for "$_searchQuery"',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: Colors.grey,
+                  fontSize: 16,
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -333,9 +379,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
         mainAxisSpacing: 12,
         childAspectRatio: 0.75,
       ),
-      itemCount: _browseListings.length,
+      itemCount: filteredListings.length,
       itemBuilder: (context, index) {
-        final item = _browseListings[index];
+        final item = filteredListings[index];
         return _buildBrowseGridItem(item);
       },
     );
@@ -530,17 +576,39 @@ class _BrowseScreenState extends State<BrowseScreen> {
       );
     }
 
-    if (_browseListings.isEmpty) {
+    // Filter listings based on search query
+    final filteredListings = _searchQuery.isEmpty
+        ? _browseListings
+        : _browseListings.where((item) {
+            return item.title.toLowerCase().contains(_searchQuery) ||
+                item.category.toLowerCase().contains(_searchQuery) ||
+                item.condition.toLowerCase().contains(_searchQuery) ||
+                (item.description?.toLowerCase().contains(_searchQuery) ?? false);
+          }).toList();
+
+    if (filteredListings.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
-          child: Text(
-            'No items from other users.\nTry changing the filter or check back later.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              color: Colors.grey,
-              fontSize: 16,
-            ),
+          child: Column(
+            children: [
+              Icon(
+                _searchQuery.isEmpty ? Icons.inventory_2_outlined : Icons.search_off,
+                size: 64,
+                color: Colors.grey[400],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _searchQuery.isEmpty
+                    ? 'No items from other users.\nTry changing the filter or check back later.'
+                    : 'No results found for "$_searchQuery"',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: Colors.grey,
+                  fontSize: 16,
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -549,9 +617,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
     return ListView.builder(
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
-      itemCount: _browseListings.length,
+      itemCount: filteredListings.length,
       itemBuilder: (context, index) {
-        final item = _browseListings[index];
+        final item = filteredListings[index];
         return _buildBrowseListItem(item);
       },
     );

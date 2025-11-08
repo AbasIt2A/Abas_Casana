@@ -1,5 +1,3 @@
-import 'dart:io' show File;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/listings_service.dart';
@@ -13,7 +11,7 @@ class MyListingsScreen extends StatefulWidget {
 }
 
 class _MyListingsScreenState extends State<MyListingsScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   final ListingsService _listingsService = ListingsService();
   final DatabaseService _dbService = DatabaseService();
@@ -22,6 +20,8 @@ class _MyListingsScreenState extends State<MyListingsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    WidgetsBinding.instance.addObserver(this);
+    _loadListings();
   }
 
   // Reload listings from database
@@ -32,13 +32,34 @@ class _MyListingsScreenState extends State<MyListingsScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     super.dispose();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Reload when app comes back to foreground
+    if (state == AppLifecycleState.resumed) {
+      _loadListings();
+    }
+  }
+
+  // Reload when returning to this screen
+  @override
+  void didUpdateWidget(MyListingsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _loadListings();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Force rebuild to show latest listings
+    // Reload listings whenever this screen is built (e.g., after posting a new item)
+    // This ensures the count is always up-to-date
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadListings();
+    });
+    
     return WillPopScope(
       onWillPop: () async {
         // When navigating back, trigger a rebuild
@@ -100,42 +121,7 @@ class _MyListingsScreenState extends State<MyListingsScreen>
           ),
         ),
       ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.search, color: Colors.white, size: 22),
-              onPressed: () {},
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(right: 12.0, top: 8, bottom: 8),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.more_vert, color: Colors.white, size: 22),
-              onPressed: () {},
-            ),
-          ),
-        ),
-      ],
+      actions: [],
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: true,
         title: Text(
@@ -649,40 +635,46 @@ class _MyListingsScreenState extends State<MyListingsScreen>
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: isUserPosted && imageUrl.startsWith('/')
-                            ? (kIsWeb
-                                  ? Image.network(
-                                      imageUrl,
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (c, e, s) => Container(
-                                        width: 80,
-                                        height: 80,
-                                        color: Colors.grey[900],
-                                      ),
-                                    )
-                                  : Image.file(
-                                      File(imageUrl),
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (c, e, s) => Container(
-                                        width: 80,
-                                        height: 80,
-                                        color: Colors.grey[900],
-                                      ),
-                                    ))
-                            : Image.asset(
+                        child: imageUrl.isNotEmpty &&
+                                (imageUrl.startsWith('http://') ||
+                                    imageUrl.startsWith('https://'))
+                            ? Image.network(
                                 imageUrl,
                                 width: 80,
                                 height: 80,
-                                fit: BoxFit.contain,
-                                errorBuilder: (c, e, s) => Container(
-                                  width: 80,
-                                  height: 80,
-                                  color: Colors.grey[900],
-                                ),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 80,
+                                    height: 80,
+                                    color: Colors.grey[300],
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      color: Colors.grey[600],
+                                      size: 30,
+                                    ),
+                                  );
+                                },
+                              )
+                            : Image.asset(
+                                imageUrl.isEmpty
+                                    ? 'assets/images/gadget1.jpg'
+                                    : imageUrl,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 80,
+                                    height: 80,
+                                    color: Colors.grey[300],
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      color: Colors.grey[600],
+                                      size: 30,
+                                    ),
+                                  );
+                                },
                               ),
                       ),
                     ),

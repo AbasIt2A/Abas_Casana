@@ -190,22 +190,19 @@ class ListingsService {
         // Remove from favorites
         await _dbService.removeFromFavorites(userId: user.id, itemId: id);
         _favoriteItemIds.remove(id);
+        print('DEBUG: Removed favorite: $id');
       } else {
         // Add to favorites
-        // Determine item type based on ID pattern
-        String itemType = 'listing';
-        if (id.startsWith('featured_')) {
-          itemType = 'featured';
-        } else if (id.startsWith('sample_')) {
-          itemType = 'sample';
-        }
-        
+        // All items from database are 'listing' type
+        // Legacy prefixes like 'featured_' or 'sample_' are no longer used
         await _dbService.addToFavorites(
           userId: user.id,
           itemId: id,
-          itemType: itemType,
+          itemType: 'listing',
         );
         _favoriteItemIds.add(id);
+        print('DEBUG: Added favorite: $id');
+        print('DEBUG: Total favorites after add: ${_favoriteItemIds.length}');
       }
     } catch (e) {
       print('Error toggling favorite: $e');
@@ -225,9 +222,8 @@ class ListingsService {
     return _userListings.where((item) => item.status == status).length;
   }
 
-  int get favoriteCount =>
-      _userListings.where((item) => item.isFavorite).length +
-      _favoriteItemIds.length;
+  // Count of favorited marketplace items (from other users)
+  int get favoriteCount => _favoriteItemIds.length;
 
   // Get all favorite items with their metadata
   Map<String, Map<String, String>> getAllFavoriteItems() {

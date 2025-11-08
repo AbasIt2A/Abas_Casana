@@ -10,7 +10,7 @@ class SavedItemsScreen extends StatefulWidget {
   State<SavedItemsScreen> createState() => _SavedItemsScreenState();
 }
 
-class _SavedItemsScreenState extends State<SavedItemsScreen> {
+class _SavedItemsScreenState extends State<SavedItemsScreen> with WidgetsBindingObserver {
   final ListingsService _listingsService = ListingsService();
   List<Map<String, dynamic>> _savedItems = [];
   bool _isLoading = true;
@@ -18,7 +18,22 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadSavedItems();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Reload when app comes back to foreground
+    if (state == AppLifecycleState.resumed) {
+      _loadSavedItems();
+    }
   }
 
   Future<void> _loadSavedItems() async {

@@ -25,6 +25,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadUserProfile();
+    _initializeListingsService();
+  }
+
+  Future<void> _initializeListingsService() async {
+    try {
+      await _listingsService.initialize();
+      setState(() {
+        // Trigger rebuild after listings are loaded
+      });
+    } catch (e) {
+      print('Error initializing listings service: $e');
+    }
   }
 
   Future<void> _loadUserProfile() async {
@@ -80,14 +92,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.format_list_bulleted,
                       title: 'My Listings',
                       subtitle: 'View your posted items',
-                      trailingText: '3 Active',
+                      trailingText: '${_listingsService.getCountByStatus('Active')} Active',
                       trailingColor: Colors.green,
-                      onTap: () {
-                        Navigator.of(context).push(
+                      onTap: () async {
+                        await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => const MyListingsScreen(),
                           ),
                         );
+                        // Reload listings service to update counts after returning
+                        await _initializeListingsService();
                       },
                     ),
                     const SizedBox(height: 8),
@@ -97,12 +111,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       subtitle: 'Your favorited items',
                       trailingText: '${_listingsService.favoriteCount} Saved',
                       trailingColor: Colors.pink,
-                      onTap: () {
-                        Navigator.of(context).push(
+                      onTap: () async {
+                        await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => const SavedItemsScreen(),
                           ),
                         );
+                        // Reload listings service to update counts after returning
+                        await _initializeListingsService();
                       },
                     ),
                     const SizedBox(height: 24),

@@ -631,45 +631,58 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   //      _buildCategoryItem, _buildActionButtons, _buildFeaturedItemCard remain the same)
 
   Widget _buildSearchBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: Colors.grey),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              style: GoogleFonts.poppins(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: 'Search electronics...',
-                hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+    return GestureDetector(
+      onTap: () {
+        // Navigate to Browse screen which has search functionality
+        Navigator.of(context).push(_createRoute(const BrowseScreen()));
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.search, color: Colors.grey),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                enabled: false, // Disable direct input, tap navigates to Browse
+                style: GoogleFonts.poppins(fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: 'Search electronics...',
+                  hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
               ),
             ),
-          ),
-          Container(
-            height: 36,
-            width: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFB300),
-              borderRadius: BorderRadius.circular(10),
+            GestureDetector(
+              onTap: () {
+                // Navigate to Browse screen with filters
+                Navigator.of(context).push(_createRoute(const BrowseScreen()));
+              },
+              child: Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFB300),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.filter_list, color: Colors.white, size: 20),
+              ),
             ),
-            child: const Icon(Icons.filter_list, color: Colors.white, size: 20),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -968,11 +981,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     top: 10,
                     right: 10,
                     child: GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        // Use actual itemId or generate one for legacy items
+                        final String favoriteId = itemId ?? 'featured_${title.replaceAll(' ', '_')}';
+                        await ListingsService().toggleFavoriteById(favoriteId);
                         setState(() {
-                          // Use actual itemId or generate one for legacy items
-                          final String favoriteId = itemId ?? 'featured_${title.replaceAll(' ', '_')}';
-                          ListingsService().toggleFavoriteById(favoriteId);
+                          // Refresh UI after toggle completes
                         });
                       },
                       child: Container(
