@@ -14,6 +14,7 @@ class ChatDetailsScreen extends StatefulWidget {
   final String? listingId;
   final String? sellerId;
   final String? conversationId; // Add this parameter
+  final String? autoMessage; // New parameter for auto-sending message
 
   const ChatDetailsScreen({
     super.key,
@@ -26,6 +27,7 @@ class ChatDetailsScreen extends StatefulWidget {
     this.listingId,
     this.sellerId,
     this.conversationId, // Add this parameter
+    this.autoMessage, // New parameter
   });
 
   @override
@@ -92,6 +94,16 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
       await _loadMessages();
       await _markMessagesAsRead();
+      
+      // If autoMessage is provided, send it automatically
+      if (widget.autoMessage != null && widget.autoMessage!.isNotEmpty) {
+        _messageController.text = widget.autoMessage!;
+        // Wait a moment for the UI to be ready, then send the message
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          await _sendMessage();
+        }
+      }
       
       // Start polling for new messages every 3 seconds
       _startMessagePolling();

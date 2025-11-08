@@ -758,40 +758,206 @@ class _SignupScreenState extends State<SignupScreen> {
                         phoneNumber: phoneNumber,
                       );
 
-                  // Upload profile picture if selected
-                  if (authResponse?.user != null && _profileImage != null) {
-                    final String? imageUrl = await _dbService
-                        .uploadProfilePicture(
-                          _profileImage!,
-                          authResponse!.user!.id,
-                        );
+                  // Check if signup was successful
+                  if (authResponse?.user == null) {
+                    throw Exception('Signup failed - no user returned');
+                  }
 
-                    if (imageUrl != null) {
-                      await _dbService.updateUserProfile(
-                        userId: authResponse.user!.id,
-                        profilePicUrl: imageUrl,
-                      );
+                  // Upload profile picture if selected (while user is still authenticated)
+                  if (_profileImage != null) {
+                    try {
+                      final String? imageUrl = await _dbService
+                          .uploadProfilePicture(
+                            _profileImage!,
+                            authResponse!.user!.id,
+                          );
+
+                      if (imageUrl != null) {
+                        await _dbService.updateUserProfile(
+                          userId: authResponse.user!.id,
+                          profilePicUrl: imageUrl,
+                        );
+                      }
+                    } catch (e) {
+                      print('Error uploading profile picture: $e');
+                      // Continue anyway - profile pic is optional
                     }
                   }
 
+                  // NOW sign out the user after profile is created
+                  // This ensures they must verify email before logging in
+                  await _authService.signOut();
+
                   if (mounted) {
-                    // Show success message and navigate to login
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Account created successfully! Please log in.',
-                        ),
-                      ),
+                    // Show success message about email verification
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          title: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.mark_email_read,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Verify Your Email',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF3F51B5),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'We\'ve sent a verification link to:',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF3F51B5).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.email,
+                                      color: Color(0xFF3F51B5),
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        _emailController.text.trim(),
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF3F51B5),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Please check your email and click the verification link to activate your account.',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                  height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFB300).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(0xFFFFB300).withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.info_outline,
+                                      color: Color(0xFFFFB300),
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Check your spam folder if you don\'t see the email.',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(); // Close dialog
+                                  Navigator.of(context).pop(); // Go back to login
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF3F51B5),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Got It!',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     );
-                    Navigator.pop(context); // Go back to login screen
                   }
                 } on AuthException catch (e) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(
-                    content: Text(e.message),
-                    backgroundColor: Colors.redAccent,
-                  ));
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.message),
+                        backgroundColor: Colors.redAccent,
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error creating account: ${e.toString()}'),
+                        backgroundColor: Colors.redAccent,
+                        duration: const Duration(seconds: 4),
+                      ),
+                    );
+                  }
+                  print('Unexpected error during signup: $e');
                 } finally {
                   if (mounted) {
                     setState(() {

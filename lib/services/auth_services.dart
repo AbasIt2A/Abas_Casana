@@ -17,9 +17,14 @@ class AuthService {
       final AuthResponse response = await _supabase.auth.signUp(
         email: email,
         password: password,
+        emailRedirectTo: null, // Will use default email confirmation
+        data: {
+          'full_name': fullName,
+          'phone_number': phoneNumber,
+        }, // Pass metadata so trigger can access it
       );
 
-      // Store user data in database
+      // Update user profile with additional info after trigger creates basic profile
       if (response.user != null) {
         await _dbService.createUserProfile(
           userId: response.user!.id,
@@ -30,6 +35,7 @@ class AuthService {
       }
 
       print('User account created: ${response.user?.email}');
+      print('Email confirmation required: ${response.user?.emailConfirmedAt == null}');
       return response;
     } on AuthException catch (e) {
       print('Supabase Auth Exception during signup: ${e.message}');

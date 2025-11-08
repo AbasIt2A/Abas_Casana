@@ -12,6 +12,7 @@ class ItemDetailsScreen extends StatefulWidget {
   final String? description;
   final String? listingId;
   final String? sellerId;
+  final String? location;
 
   const ItemDetailsScreen({
     super.key,
@@ -24,6 +25,7 @@ class ItemDetailsScreen extends StatefulWidget {
     this.description,
     this.listingId,
     this.sellerId,
+    this.location,
   });
 
   @override
@@ -354,11 +356,24 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFFFFB300), width: 3),
                 ),
-                child: CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Colors.grey[300],
-                  child: Icon(Icons.person, size: 30, color: Colors.grey[600]),
-                ),
+                child: widget.sellerAvatar != null &&
+                        widget.sellerAvatar!.isNotEmpty &&
+                        (widget.sellerAvatar!.startsWith('http://') ||
+                            widget.sellerAvatar!.startsWith('https://'))
+                    ? CircleAvatar(
+                        radius: 28,
+                        backgroundImage: NetworkImage(widget.sellerAvatar!),
+                        backgroundColor: Colors.grey[300],
+                        onBackgroundImageError: (exception, stackTrace) {
+                          // Error handled by showing default icon
+                        },
+                        child: null,
+                      )
+                    : CircleAvatar(
+                        radius: 28,
+                        backgroundColor: Colors.grey[300],
+                        child: Icon(Icons.person, size: 30, color: Colors.grey[600]),
+                      ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -366,7 +381,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.sellerName ?? 'Mark Santos',
+                      widget.sellerName ?? 'Unknown Seller',
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -384,50 +399,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            'Quezon City, Metro Manila',
+                            widget.location ?? 'Location not specified',
                             style: GoogleFonts.poppins(
                               color: Colors.grey[600],
                               fontSize: 12,
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.star,
-                          color: Color(0xFFFFB300),
-                          size: 16,
-                        ),
-                        const Icon(
-                          Icons.star,
-                          color: Color(0xFFFFB300),
-                          size: 16,
-                        ),
-                        const Icon(
-                          Icons.star,
-                          color: Color(0xFFFFB300),
-                          size: 16,
-                        ),
-                        const Icon(
-                          Icons.star,
-                          color: Color(0xFFFFB300),
-                          size: 16,
-                        ),
-                        const Icon(
-                          Icons.star_half,
-                          color: Color(0xFFFFB300),
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '4.8 (127)',
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -511,7 +487,29 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                // Navigate to chat with auto-message
+                final sellerName = widget.sellerName ?? 'Seller';
+                final sellerAvatar = widget.sellerAvatar ?? 'assets/images/profile.png';
+
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ChatDetailsScreen(
+                      name: sellerName,
+                      avatarUrl: sellerAvatar,
+                      itemTitle: widget.title,
+                      itemPrice: widget.price,
+                      itemImageUrl: widget.imageUrls.isNotEmpty 
+                          ? widget.imageUrls[0] 
+                          : null,
+                      itemStatus: widget.status,
+                      listingId: widget.listingId,
+                      sellerId: widget.sellerId,
+                      autoMessage: "Hi, I'm interested in the item. Is it still available?",
+                    ),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(

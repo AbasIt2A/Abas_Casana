@@ -6,6 +6,8 @@ class DatabaseService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   // Create or update user profile
+  // Note: The auth trigger automatically creates a basic profile
+  // This method updates it with additional information
   Future<void> createUserProfile({
     required String userId,
     required String fullName,
@@ -14,17 +16,20 @@ class DatabaseService {
     String? profilePicUrl,
   }) async {
     try {
-      await _supabase.from('users').insert({
-        'id': userId,
+      // Wait a moment for the auth trigger to create the basic profile
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Update the profile with additional info
+      await _supabase.from('users').update({
         'full_name': fullName,
-        'email': email,
         'phone_number': phoneNumber,
         'profile_pic_url': profilePicUrl,
-        'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
-      });
+      }).eq('id', userId);
+      
+      print('Profile updated successfully for user: $userId');
     } catch (e) {
-      print('Error creating user profile: $e');
+      print('Error updating user profile: $e');
       rethrow;
     }
   }

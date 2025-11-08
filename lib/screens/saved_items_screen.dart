@@ -414,6 +414,7 @@ class _SavedItemsScreenState extends State<SavedItemsScreen> with WidgetsBinding
                   sellerName: item['sellerName'],
                   sellerAvatar: item['sellerAvatar'],
                   sellerId: item['sellerId'],
+                  location: item['location'],
                 ),
               ),
             );

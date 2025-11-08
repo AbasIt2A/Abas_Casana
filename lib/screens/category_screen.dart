@@ -277,6 +277,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 title: item.title,
                 price: item.price,
                 status: item.condition,
+                sellerName: item.sellerName,
+                sellerAvatar: item.sellerAvatar,
+                description: item.description,
+                listingId: item.id,
+                sellerId: item.sellerId,
+                location: item.location,
               ),
             ),
           );
